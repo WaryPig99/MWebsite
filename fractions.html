@@ -13,7 +13,11 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=EB+Garamond:wght@400;500&family=Libre+Baskerville:wght@400;700&display=swap');
 
-        * { box-sizing: border-box; margin: 0; padding: 0; }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
 
         body {
             background: #faf9f7;
@@ -73,8 +77,13 @@
             user-select: none;
         }
 
-            .mode-btn:hover { color: #1a1916; }
-            .mode-btn.active { color: #1a1916; }
+            .mode-btn:hover {
+                color: #1a1916;
+            }
+
+            .mode-btn.active {
+                color: #1a1916;
+            }
 
         .mode-sep {
             font-size: 11px;
@@ -99,7 +108,9 @@
             border-right: 0.5px solid #c8c4bc;
         }
 
-            .stat:last-child { border-right: none; }
+            .stat:last-child {
+                border-right: none;
+            }
 
         .stat-num {
             font-family: 'Libre Baskerville', 'Georgia', serif;
@@ -172,9 +183,19 @@
             -webkit-appearance: none;
         }
 
-            .answer-input:focus { border-color: #1a1916; }
-            .answer-input.correct { border-color: #3a7d5e; color: #3a7d5e; }
-            .answer-input.wrong { border-color: #b84040; color: #b84040; }
+            .answer-input:focus {
+                border-color: #1a1916;
+            }
+
+            .answer-input.correct {
+                border-color: #3a7d5e;
+                color: #3a7d5e;
+            }
+
+            .answer-input.wrong {
+                border-color: #b84040;
+                color: #b84040;
+            }
 
         .input-sep {
             font-family: 'Libre Baskerville', 'Georgia', serif;
@@ -199,8 +220,13 @@
             flex-shrink: 0;
         }
 
-            .submit-btn:hover { opacity: .8; }
-            .submit-btn:active { transform: scale(0.97); }
+            .submit-btn:hover {
+                opacity: .8;
+            }
+
+            .submit-btn:active {
+                transform: scale(0.97);
+            }
 
         .feedback {
             font-size: 15px;
@@ -211,8 +237,13 @@
             letter-spacing: .01em;
         }
 
-            .feedback.correct { color: #3a7d5e; }
-            .feedback.wrong { color: #b84040; }
+            .feedback.correct {
+                color: #3a7d5e;
+            }
+
+            .feedback.wrong {
+                color: #b84040;
+            }
 
         .hint-btn {
             background: transparent;
@@ -229,7 +260,10 @@
             text-transform: uppercase;
         }
 
-            .hint-btn:hover { border-color: #1a1916; color: #1a1916; }
+            .hint-btn:hover {
+                border-color: #1a1916;
+                color: #1a1916;
+            }
 
         .progress-bar-wrap {
             width: 100%;
@@ -245,7 +279,11 @@
             transition: width .4s ease;
         }
 
-        .missed-section { width: 100%; max-width: 420px; margin-top: .5rem; }
+        .missed-section {
+            width: 100%;
+            max-width: 420px;
+            margin-top: .5rem;
+        }
 
         .missed-title {
             font-size: 11px;
@@ -255,7 +293,11 @@
             margin-bottom: 8px;
         }
 
-        .missed-pills { display: flex; flex-wrap: wrap; gap: 6px; }
+        .missed-pills {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
 
         .missed-pill {
             font-family: 'EB Garamond', serif;
@@ -291,7 +333,12 @@
             font-style: italic;
         }
 
-        .done-buttons { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+        .done-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
 
         .restart-btn {
             background: #1a1916;
@@ -307,7 +354,9 @@
             transition: opacity .15s;
         }
 
-            .restart-btn:hover { opacity: .8; }
+            .restart-btn:hover {
+                opacity: .8;
+            }
 
         .missed-only-btn {
             background: transparent;
@@ -323,7 +372,9 @@
             transition: border-color .15s;
         }
 
-            .missed-only-btn:hover { border-color: #1a1916; }
+            .missed-only-btn:hover {
+                border-color: #1a1916;
+            }
 
         /* ── MORON CHECKER ── */
         .mc-overlay {
@@ -339,11 +390,20 @@
             animation: mc-fade-in .25s ease;
         }
 
-            .mc-overlay.visible { display: flex; }
+            .mc-overlay.visible {
+                display: flex;
+            }
 
         @keyframes mc-fade-in {
-            from { opacity: 0; transform: scale(0.97); }
-            to { opacity: 1; transform: scale(1); }
+            from {
+                opacity: 0;
+                transform: scale(0.97);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
         }
 
         .mc-label {
@@ -371,7 +431,10 @@
             letter-spacing: -0.3px;
         }
 
-            .mc-fact-row strong { font-weight: 700; }
+            .mc-fact-row strong {
+                font-weight: 700;
+                color: #1a1916;
+            }
 
         .mc-fact-divider {
             border: none;
@@ -381,9 +444,10 @@
         }
 
         .mc-fact-answer {
-            font-size: 22px;
+            font-size: 28px;
             font-weight: 700;
             margin-top: 6px;
+            color: #1a1916;
         }
 
         .mc-dismiss {
@@ -410,8 +474,6 @@
             height: 100%;
             background: #c8a060;
             width: 100%;
-            transform-origin: left;
-            transition: none;
         }
 
         .settings-row {
@@ -428,11 +490,21 @@
             text-transform: uppercase;
         }
 
-            .settings-row input[type=range] { width: 80px; accent-color: #1a1916; }
-            .settings-row span { min-width: 28px; text-align: right; }
+            .settings-row input[type=range] {
+                width: 80px;
+                accent-color: #1a1916;
+            }
+
+            .settings-row span {
+                min-width: 28px;
+                text-align: right;
+            }
 
         @media (max-width: 480px) {
-            body { padding: 0; justify-content: flex-start; }
+            body {
+                padding: 0;
+                justify-content: flex-start;
+            }
 
             .header {
                 margin-bottom: 0;
@@ -442,8 +514,14 @@
                 width: 100%;
             }
 
-            .title { font-size: 18px; letter-spacing: 0.1em; }
-            .subtitle { display: none; }
+            .title {
+                font-size: 18px;
+                letter-spacing: 0.1em;
+            }
+
+            .subtitle {
+                display: none;
+            }
 
             .stats-row {
                 max-width: 100%;
@@ -454,11 +532,24 @@
                 border-top: none;
             }
 
-            .stat { padding: 6px 4px; }
-            .stat-num { font-size: 18px; }
-            .stat-label { font-size: 9px; margin-top: 2px; }
+            .stat {
+                padding: 6px 4px;
+            }
 
-            .progress-bar-wrap { max-width: 100%; margin-bottom: 0; border-radius: 0; }
+            .stat-num {
+                font-size: 18px;
+            }
+
+            .stat-label {
+                font-size: 9px;
+                margin-top: 2px;
+            }
+
+            .progress-bar-wrap {
+                max-width: 100%;
+                margin-bottom: 0;
+                border-radius: 0;
+            }
 
             .settings-row {
                 max-width: 100%;
@@ -485,8 +576,14 @@
                 margin-bottom: 0;
             }
 
-            .question { font-size: 56px; margin-bottom: 4px; }
-            .hint { font-size: 13px; }
+            .question {
+                font-size: 56px;
+                margin-bottom: 4px;
+            }
+
+            .hint {
+                font-size: 13px;
+            }
 
             .timer-bar-wrap {
                 max-width: 100%;
@@ -495,33 +592,85 @@
                 border-radius: 0;
             }
 
-            .input-row { max-width: 100%; margin-bottom: 0.5rem; gap: 6px; }
-            .answer-input { font-size: 24px; padding: 14px 6px; }
-            .input-sep { font-size: 24px; }
-            .submit-btn { padding: 14px 18px; font-size: 22px; }
-            .feedback { margin-bottom: 0.4rem; font-size: 14px; }
-            .hint-btn { padding: 5px 14px; font-size: 12px; margin-bottom: 0.8rem; }
-            .missed-pill { font-size: 12px; padding: 3px 8px; }
+            .input-row {
+                max-width: 100%;
+                margin-bottom: 0.5rem;
+                gap: 6px;
+            }
+
+            .answer-input {
+                font-size: 24px;
+                padding: 14px 6px;
+            }
+
+            .input-sep {
+                font-size: 24px;
+            }
+
+            .submit-btn {
+                padding: 14px 18px;
+                font-size: 22px;
+            }
+
+            .feedback {
+                margin-bottom: 0.4rem;
+                font-size: 14px;
+            }
+
+            .hint-btn {
+                padding: 5px 14px;
+                font-size: 12px;
+                margin-bottom: 0.8rem;
+            }
+
+            .missed-pill {
+                font-size: 12px;
+                padding: 3px 8px;
+            }
 
             .mc-overlay {
-                align-items: center;
-                justify-content: center;
-                background: rgba(250,249,247,0.88);
-                backdrop-filter: blur(3px);
                 padding: 12px;
             }
 
-            .mc-content { padding: 1rem 1.5rem; }
-            .mc-fact-row { font-size: 15px; }
-            .mc-fact-answer { font-size: 19px; }
+            .mc-content {
+                padding: 1rem 1.5rem;
+            }
 
-            .mc-label { font-size: 10px; letter-spacing: .1em; margin-bottom: 8px; }
-            .mc-dismiss { font-size: 10px; margin-top: 8px; }
+            .mc-fact-row {
+                font-size: 15px;
+            }
 
-            .done-screen { padding: 2rem 1rem; }
-            .done-title { font-size: 32px; }
-            .done-buttons { flex-direction: column; align-items: stretch; }
-            .restart-btn, .missed-only-btn { text-align: center; }
+            .mc-fact-answer {
+                font-size: 22px;
+            }
+
+            .mc-label {
+                font-size: 10px;
+                letter-spacing: .1em;
+                margin-bottom: 8px;
+            }
+
+            .mc-dismiss {
+                font-size: 10px;
+                margin-top: 8px;
+            }
+
+            .done-screen {
+                padding: 2rem 1rem;
+            }
+
+            .done-title {
+                font-size: 32px;
+            }
+
+            .done-buttons {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .restart-btn, .missed-only-btn {
+                text-align: center;
+            }
         }
     </style>
 </head>
@@ -600,9 +749,72 @@
     <script>
         let currentMode = 'simplify';
         let queue = [], missed = {}, correct = 0, wrong = 0, streak = 0, current = null, total = 0, doneCount = 0;
-        let mcTimer = null, mcAnimFrame = null, mcStartTime = null, mcDuration = 5000;
+        let mcDuration = 5000;
         let mcVisible = false;
 
+        // ── TIMER — single source of truth ──────────────────────────────
+        // A generation counter kills stale rAF callbacks instantly.
+        // clearTimer() always runs before startTimer() so there's never
+        // more than one active loop at a time.
+        let _timerGen = 0;
+        let _timerTimeout = null;
+        let _timerRaf = null;
+        let _timerStart = null;
+
+        function startMoronTimer() {
+            _clearTimer();
+            const gen = ++_timerGen;
+            _timerStart = performance.now();
+
+            // rAF loop — bails immediately if generation is stale
+            function tick(now) {
+                if (_timerGen !== gen) return;
+                const pct = Math.max(0, 1 - (now - _timerStart) / mcDuration);
+                document.getElementById('timer-bar').style.width = (pct * 100) + '%';
+                if (pct > 0) {
+                    _timerRaf = requestAnimationFrame(tick);
+                }
+            }
+            _timerRaf = requestAnimationFrame(tick);
+
+            _timerTimeout = setTimeout(() => {
+                if (_timerGen !== gen) return;
+                showMoronChecker();
+            }, mcDuration);
+        }
+
+        function _clearTimer() {
+            _timerGen++;                          // invalidates any live rAF loop
+            if (_timerTimeout) { clearTimeout(_timerTimeout); _timerTimeout = null; }
+            if (_timerRaf) { cancelAnimationFrame(_timerRaf); _timerRaf = null; }
+            _timerStart = null;
+            document.getElementById('timer-bar').style.width = '100%';
+        }
+        // ────────────────────────────────────────────────────────────────
+
+        function clearMoronChecker() {
+            _clearTimer();
+            mcVisible = false;
+            document.getElementById('mc-overlay').classList.remove('visible');
+        }
+
+        function dismissMoronChecker() {
+            if (!mcVisible) return;
+            mcVisible = false;
+            document.getElementById('mc-overlay').classList.remove('visible');
+            document.getElementById('answer-num').focus();
+        }
+
+        function showMoronChecker() {
+            if (!current) return;
+            document.getElementById('mc-label').textContent = buildMCLabel(current);
+            document.getElementById('mc-content').innerHTML = buildMCContent(current);
+            mcVisible = true;
+            document.getElementById('mc-overlay').classList.add('visible');
+            document.getElementById('answer-num').focus();
+        }
+
+        // ── DATA ────────────────────────────────────────────────────────
         function gcd(a, b) { return b === 0 ? a : gcd(b, a % b); }
 
         function buildFacts() {
@@ -622,7 +834,6 @@
         }
 
         function buildDecimalFacts() {
-            // Only denominators whose prime factors are 2 and/or 5 give terminating decimals
             const termDens = [2, 4, 5, 8, 10];
             const facts = [];
             for (let a = 1; a <= 11; a++) {
@@ -639,13 +850,11 @@
         function formatQuestion(fact) {
             if (currentMode === 'simplify') return `${fact.num}/${fact.den}`;
             if (currentMode === 'ratio') return `${fact.num}:${fact.den}`;
-            // decimal — show the reduced fraction as decimal
             return String(parseFloat((fact.rNum / fact.rDen).toFixed(10)));
         }
 
         function formatAnswer(fact) {
-            const sep = getSep();
-            return `${fact.rNum}${sep}${fact.rDen}`;
+            return `${fact.rNum}${getSep()}${fact.rDen}`;
         }
 
         function formatMissedPill(fact) {
@@ -661,20 +870,19 @@
             const sep = getSep();
             if (currentMode === 'decimal') {
                 const dec = String(parseFloat((fact.rNum / fact.rDen).toFixed(10)));
-                // Express as fraction over power of 10, then simplify
                 const decStr = dec.split('.')[1] || '';
                 const mult = Math.pow(10, decStr.length);
                 const bigNum = Math.round(fact.rNum * mult / fact.rDen);
                 const div = gcd(bigNum, mult);
                 return `<div class="mc-fact-row">${dec} = ${bigNum}/${mult}</div>
-                        <div class="mc-fact-row">÷ ${div}</div>
-                        <hr class="mc-fact-divider">
-                        <div class="mc-fact-row mc-fact-answer">${fact.rNum}/${fact.rDen}</div>`;
+                            <div class="mc-fact-row">÷ ${div}</div>
+                            <hr class="mc-fact-divider">
+                            <div class="mc-fact-row mc-fact-answer">${fact.rNum}/${fact.rDen}</div>`;
             }
             return `<div class="mc-fact-row">${fact.num} ÷ ${fact.factor} = <strong>${fact.rNum}</strong></div>
-                    <div class="mc-fact-row">${fact.den} ÷ ${fact.factor} = <strong>${fact.rDen}</strong></div>
-                    <hr class="mc-fact-divider">
-                    <div class="mc-fact-row mc-fact-answer">${fact.rNum} ${sep} ${fact.rDen}</div>`;
+                        <div class="mc-fact-row">${fact.den} ÷ ${fact.factor} = <strong>${fact.rDen}</strong></div>
+                        <hr class="mc-fact-divider">
+                        <div class="mc-fact-row mc-fact-answer">${fact.rNum} ${sep} ${fact.rDen}</div>`;
         }
 
         function buildMCLabel(fact) {
@@ -682,6 +890,7 @@
             return mcDuration > 2500 ? `yeah — ${q}` : `hint — ${q}`;
         }
 
+        // ── FLOW ────────────────────────────────────────────────────────
         function setMode(mode) {
             currentMode = mode;
             document.querySelectorAll('.mode-btn').forEach(b => {
@@ -742,49 +951,6 @@
             startMoronTimer();
         }
 
-        function startMoronTimer() {
-            clearTimeout(mcTimer);
-            cancelAnimationFrame(mcAnimFrame);
-            mcStartTime = performance.now();
-            tickTimerBar();
-            mcTimer = setTimeout(showMoronChecker, mcDuration);
-        }
-
-        function tickTimerBar() {
-            const bar = document.getElementById('timer-bar');
-            function frame(now) {
-                const pct = Math.max(0, 1 - (now - mcStartTime) / mcDuration);
-                bar.style.width = (pct * 100) + '%';
-                if (pct > 0) mcAnimFrame = requestAnimationFrame(frame);
-            }
-            mcAnimFrame = requestAnimationFrame(frame);
-        }
-
-        function clearMoronChecker() {
-            clearTimeout(mcTimer);
-            cancelAnimationFrame(mcAnimFrame);
-            mcTimer = null; mcAnimFrame = null; mcStartTime = null;
-            mcVisible = false;
-            document.getElementById('mc-overlay').classList.remove('visible');
-            document.getElementById('timer-bar').style.width = '100%';
-        }
-
-        function dismissMoronChecker() {
-            if (!mcVisible) return;
-            mcVisible = false;
-            document.getElementById('mc-overlay').classList.remove('visible');
-            document.getElementById('answer-num').focus();
-        }
-
-        function showMoronChecker() {
-            if (!current) return;
-            document.getElementById('mc-label').textContent = buildMCLabel(current);
-            document.getElementById('mc-content').innerHTML = buildMCContent(current);
-            mcVisible = true;
-            document.getElementById('mc-overlay').classList.add('visible');
-            document.getElementById('answer-num').focus();
-        }
-
         function showHint() {
             if (!current) return;
             if (currentMode === 'decimal') {
@@ -819,8 +985,7 @@
             } else {
                 numInp.className = 'answer-input wrong';
                 denInp.className = 'answer-input wrong';
-                const ans = formatAnswer(current);
-                document.getElementById('feedback').textContent = `The answer is ${ans}`;
+                document.getElementById('feedback').textContent = `The answer is ${formatAnswer(current)}`;
                 document.getElementById('feedback').className = 'feedback wrong';
                 wrong++; streak = 0;
                 if (!missed[key]) missed[key] = { fact: current, count: 0 };
@@ -873,7 +1038,6 @@
         document.getElementById('answer-den').addEventListener('keydown', e => { if (e.key === 'Enter') submitAnswer(); });
         document.addEventListener('keydown', e => { if (e.key === 'Enter') return; if (mcVisible) dismissMoronChecker(); });
 
-        // Auto-advance: jump to denominator as soon as the typed numerator matches
         document.getElementById('answer-num').addEventListener('input', () => {
             if (!current) return;
             if (parseInt(document.getElementById('answer-num').value) === current.rNum) {
