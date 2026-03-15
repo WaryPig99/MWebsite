@@ -21,5 +21,4 @@ for the specified amount of time. Or if you get a question wrong.
 you really dont need to donate because it was built i claude i
 just put it here but if you want to like cheers thanks man
 
-https://www.paypal.com/donate/?business=FA3KWH54X2BCU\&no\_recurring=0\&currency\_code=AUD
-
+https://www.paypal.com/donate/?business=FA3KWH54X2BCU&no_recurring=0&item_name=tysm&currency_code=AUD
