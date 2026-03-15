@@ -6,9 +6,15 @@ learn I just need to know if before my brain even assesses wether its right or n
 juries still out to wether it makes me less shit at maths.
 
 or not i might try to update it or get claude to update it
-later
+later.
 
-you really dont need to donate because it was built i claude i 
+includes a 'moron checker' that flashes up a times table with alpha in front of your face for
+for the specified amount of time.
+
+
+
+you really dont need to donate because it was built i claude i
 just put it here but if you want to like cheers thanks man
 
-https://www.paypal.com/donate/?business=FA3KWH54X2BCU&no_recurring=0&currency_code=AUD
+https://www.paypal.com/donate/?business=FA3KWH54X2BCU\&no\_recurring=0\&currency\_code=AUD
+

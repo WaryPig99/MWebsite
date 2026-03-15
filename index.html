@@ -515,7 +515,7 @@
     </div>
 
     <!-- MORON CHECKER OVERLAY -->
-    <div class="mc-overlay" id="mc-overlay">
+    <div class="mc-overlay" id="mc-overlay" onclick="this.classList.remove('visible'); document.getElementById('answer-input').focus();">
         <div class="mc-label" id="mc-label">Moron checker — <span id="mc-question-label"></span></div>
         <table class="mc-grid" id="mc-grid"></table>
         <div class="mc-dismiss">Start typing to dismiss</div>
@@ -767,10 +767,13 @@
             if (e.key === 'Enter') submitAnswer();
         });
 
-        // typing dismisses the moron checker
-        document.getElementById('answer-input').addEventListener('input', () => {
-            if (document.getElementById('mc-overlay').classList.contains('visible')) {
-                document.getElementById('mc-overlay').classList.remove('visible');
+        // any keypress dismisses the moron checker and refocuses input
+        document.addEventListener('keydown', (e) => {
+            const overlay = document.getElementById('mc-overlay');
+            if (overlay.classList.contains('visible')) {
+                overlay.classList.remove('visible');
+                const inp = document.getElementById('answer-input');
+                inp.focus();
             }
         });
 
