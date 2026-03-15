@@ -331,6 +331,27 @@
                 border-color: #1a1916;
             }
 
+        .done-history {
+            margin-top: 2rem;
+            text-align: center;
+        }
+
+        .done-history-label {
+            font-family: 'EB Garamond', serif;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: .14em;
+            color: #c8c4bc;
+            margin-bottom: 6px;
+        }
+
+        .done-history-row {
+            font-size: 13px;
+            color: #aaa69e;
+            font-style: italic;
+            margin: 2px 0;
+        }
+
         /* ── MORON CHECKER ── */
         .mc-overlay {
             display: none;
@@ -704,10 +725,12 @@
     <div class="done-screen" id="done-screen">
         <div class="done-title" id="done-title">Complete.</div>
         <div class="done-sub" id="done-sub"></div>
+        <div class="done-sub" id="done-time"></div>
         <div class="done-buttons">
             <button class="restart-btn" onclick="startFresh()">Full drill again</button>
             <button class="missed-only-btn" id="missed-only-btn" onclick="drillMissed()">Missed only</button>
         </div>
+        <div id="done-history"></div>
     </div>
 
     <div class="mc-overlay" id="mc-overlay" tabindex="-1" onclick="dismissMoronChecker()">
@@ -741,6 +764,7 @@
 
         let allFacts = buildTable();
         let queue = [], missed = {}, correct = 0, wrong = 0, streak = 0, current = null, total = 0, done_count = 0;
+        let drillStart = null;
         let mcTimer = null, mcAnimFrame = null, mcStartTime = null, mcDuration = 5000;
         let mcVisible = false;
 
@@ -758,6 +782,7 @@
         }
 
         function startFresh() {
+            drillStart = Date.now();
             queue = shuffle([...allFacts]);
             missed = {}; correct = 0; wrong = 0; streak = 0; done_count = 0;
             total = queue.length;
@@ -769,6 +794,7 @@
         function drillMissed() {
             const mf = Object.keys(missed).map(k => missed[k].fact);
             if (!mf.length) return;
+            drillStart = Date.now();
             queue = shuffle([...mf, ...mf]);
             missed = {}; correct = 0; wrong = 0; streak = 0; done_count = 0;
             total = queue.length;
@@ -973,15 +999,42 @@
             }).join('');
         }
 
+        function fmtDrillTime(ms) {
+            const s = Math.round(ms / 1000);
+            return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
+        }
+
+        function saveDrillResult(key, pct, timeStr) {
+            let hist = [];
+            try { hist = JSON.parse(localStorage.getItem(key) || '[]'); } catch(e) {}
+            const d = new Date();
+            hist.unshift({ date: d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }), accuracy: pct, time: timeStr });
+            if (hist.length > 5) hist.length = 5;
+            try { localStorage.setItem(key, JSON.stringify(hist)); } catch(e) {}
+            return hist;
+        }
+
+        function renderDrillHistory(hist) {
+            if (!hist.length) return '';
+            return '<div class="done-history"><div class="done-history-label">Recent</div>'
+                + hist.map(r => `<div class="done-history-row">${r.date} &middot; ${r.accuracy}% &middot; ${r.time}</div>`).join('')
+                + '</div>';
+        }
+
         function showDone() {
             clearMoronChecker();
             document.getElementById('drill-screen').style.display = 'none';
             document.getElementById('done-screen').style.display = 'block';
+            const elapsed = drillStart ? Date.now() - drillStart : 0;
+            const timeStr = fmtDrillTime(elapsed);
             const t = correct + wrong;
             const pct = t > 0 ? Math.round((correct / t) * 100) : 0;
             document.getElementById('done-title').textContent = pct >= 90 ? 'Excellent.' : pct >= 70 ? 'Good progress.' : 'Keep going.';
             document.getElementById('done-sub').textContent = `${correct} correct, ${wrong} missed — ${pct}% accuracy`;
+            document.getElementById('done-time').textContent = timeStr;
             document.getElementById('missed-only-btn').style.display = Object.keys(missed).length ? 'inline-block' : 'none';
+            const hist = saveDrillResult('history_divide', pct, timeStr);
+            document.getElementById('done-history').innerHTML = renderDrillHistory(hist);
         }
 
         document.getElementById('answer-input').addEventListener('keydown', e => {
