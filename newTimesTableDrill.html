@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Times Tables</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=EB+Garamond:wght@400;500&display=swap');
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: #faf9f7;
+  font-family: 'EB Garamond', 'Times New Roman', serif;
+  color: #1a1916;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 3rem 1.5rem;
+}
+
+.header {
+  text-align: center;
+  margin-bottom: 2.5rem;
+  border-bottom: 0.5px solid #c8c4bc;
+  padding-bottom: 1.5rem;
+  width: 100%;
+  max-width: 420px;
+}
+
+.title {
+  font-family: 'Cormorant Garamond', 'Times New Roman', serif;
+  font-weight: 600;
+  font-size: 32px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #1a1916;
+  margin-bottom: 4px;
+}
+
+.subtitle {
+  font-size: 13px;
+  color: #8a8680;
+  letter-spacing: .15em;
+  text-transform: uppercase;
+  font-style: italic;
+}
+
+.stats-row {
+  display: flex;
+  gap: 0;
+  margin-bottom: 2.5rem;
+  width: 100%;
+  max-width: 420px;
+  border: 0.5px solid #c8c4bc;
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.stat {
+  flex: 1;
+  padding: 12px 10px;
+  text-align: center;
+  border-right: 0.5px solid #c8c4bc;
+}
+.stat:last-child { border-right: none; }
+
+.stat-num {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 26px;
+  font-weight: 500;
+  color: #1a1916;
+  line-height: 1;
+}
+
+.stat-label {
+  font-size: 10px;
+  color: #8a8680;
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  margin-top: 3px;
+}
+
+.card {
+  width: 100%;
+  max-width: 420px;
+  border: 0.5px solid #c8c4bc;
+  border-radius: 2px;
+  padding: 3rem 2rem;
+  text-align: center;
+  margin-bottom: 1.5rem;
+  background: #fff;
+}
+
+.question {
+  font-family: 'Cormorant Garamond', 'Times New Roman', serif;
+  font-size: 64px;
+  font-weight: 500;
+  color: #1a1916;
+  letter-spacing: -1px;
+  margin-bottom: 10px;
+  line-height: 1;
+}
+
+.hint {
+  font-size: 14px;
+  color: #8a8680;
+  min-height: 20px;
+  font-style: italic;
+  letter-spacing: .01em;
+}
+
+.input-row {
+  display: flex;
+  gap: 8px;
+  width: 100%;
+  max-width: 420px;
+  margin-bottom: 1rem;
+}
+
+.answer-input {
+  flex: 1;
+  background: #fff;
+  border: 0.5px solid #c8c4bc;
+  border-radius: 2px;
+  padding: 14px 18px;
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 28px;
+  font-weight: 500;
+  color: #1a1916;
+  text-align: center;
+  outline: none;
+  transition: border-color .15s;
+}
+
+
+
+.answer-input:focus { border-color: #1a1916; }
+.answer-input.correct { border-color: #3a7d5e; color: #3a7d5e; }
+.answer-input.wrong { border-color: #b84040; color: #b84040; }
+
+.submit-btn {
+  background: #1a1916;
+  color: #faf9f7;
+  border: none;
+  border-radius: 2px;
+  padding: 14px 22px;
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 20px;
+  cursor: pointer;
+  transition: opacity .15s, transform .1s;
+  letter-spacing: .05em;
+}
+
+.submit-btn:hover { opacity: .8; }
+.submit-btn:active { transform: scale(0.97); }
+
+.feedback {
+  font-size: 15px;
+  min-height: 22px;
+  margin-bottom: 1rem;
+  font-style: italic;
+  text-align: center;
+  letter-spacing: .01em;
+}
+
+.feedback.correct { color: #3a7d5e; }
+.feedback.wrong { color: #b84040; }
+
+.hint-btn {
+  background: transparent;
+  border: 0.5px solid #c8c4bc;
+  border-radius: 2px;
+  padding: 7px 16px;
+  font-family: 'EB Garamond', serif;
+  font-size: 13px;
+  color: #8a8680;
+  cursor: pointer;
+  transition: all .15s;
+  margin-bottom: 2rem;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.hint-btn:hover { border-color: #1a1916; color: #1a1916; }
+
+.progress-bar-wrap {
+  width: 100%;
+  max-width: 420px;
+  height: 1px;
+  background: #c8c4bc;
+  margin-bottom: 2rem;
+}
+
+.progress-bar-fill {
+  height: 100%;
+  background: #1a1916;
+  transition: width .4s ease;
+}
+
+.missed-section {
+  width: 100%;
+  max-width: 420px;
+  margin-top: .5rem;
+}
+
+.missed-title {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: .12em;
+  color: #8a8680;
+  margin-bottom: 8px;
+}
+
+.missed-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.missed-pill {
+  font-family: 'EB Garamond', serif;
+  font-size: 13px;
+  padding: 4px 12px;
+  border-radius: 1px;
+  background: #fff;
+  border: 0.5px solid #c8a0a0;
+  color: #b84040;
+  letter-spacing: .03em;
+}
+
+.done-screen {
+  display: none;
+  text-align: center;
+  width: 100%;
+  max-width: 420px;
+  padding-top: 1rem;
+}
+
+.done-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 42px;
+  font-weight: 500;
+  margin-bottom: 8px;
+  letter-spacing: .05em;
+}
+
+.done-sub {
+  font-size: 15px;
+  color: #8a8680;
+  margin-bottom: 2.5rem;
+  font-style: italic;
+}
+
+.done-buttons { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+
+.restart-btn {
+  background: #1a1916;
+  color: #faf9f7;
+  border: none;
+  border-radius: 2px;
+  padding: 13px 28px;
+  font-family: 'EB Garamond', serif;
+  font-size: 15px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: opacity .15s;
+}
+.restart-btn:hover { opacity: .8; }
+
+.missed-only-btn {
+  background: transparent;
+  border: 0.5px solid #c8c4bc;
+  border-radius: 2px;
+  padding: 13px 28px;
+  font-family: 'EB Garamond', serif;
+  font-size: 15px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  color: #1a1916;
+  transition: border-color .15s;
+}
+.missed-only-btn:hover { border-color: #1a1916; }
+</style>
+</head>
+<body>
+
+    <div class="header">
+        <div class="title">Times Tables</div>
+        <div class="subtitle">Multiplication drill</div>
+    </div>
+
+    <div class="stats-row">
+        <div class="stat"><div class="stat-num" id="stat-correct">0</div><div class="stat-label">Correct</div></div>
+        <div class="stat"><div class="stat-num" id="stat-wrong">0</div><div class="stat-label">Missed</div></div>
+        <div class="stat"><div class="stat-num" id="stat-streak">0</div><div class="stat-label">Streak</div></div>
+    </div>
+
+    <div class="progress-bar-wrap">
+        <div class="progress-bar-fill" id="progress-bar" style="width:0%"></div>
+    </div>
+
+    <div id="drill-screen">
+        <div class="card">
+            <div class="question" id="question">? × ?</div>
+            <div class="hint" id="hint-text"></div>
+        </div>
+
+        <div class="input-row">
+            <input class="answer-input" id="answer-input" type="number" inputmode="numeric" placeholder="—" autocomplete="off" />
+            <button class="submit-btn" onclick="submitAnswer()">→</button>
+        </div>
+
+        <div class="feedback" id="feedback"></div>
+        <button class="hint-btn" onclick="showHint()">Show hint</button>
+
+        <div class="missed-section" id="missed-section" style="display:none">
+            <div class="missed-title">Still shaky</div>
+            <div class="missed-pills" id="missed-pills"></div>
+        </div>
+    </div>
+
+    <div class="done-screen" id="done-screen">
+        <div class="done-title" id="done-title">Complete.</div>
+        <div class="done-sub" id="done-sub"></div>
+        <div class="done-buttons">
+            <button class="restart-btn" onclick="startFresh()">Full drill again</button>
+            <button class="missed-only-btn" id="missed-only-btn" onclick="drillMissed()">Missed only</button>
+        </div>
+    </div>
+
+    <script>
+        const HINTS = {
+            '2': n => `${n} + ${n}`,
+            '3': n => `3 × ${n - 1} + ${n} = ${3 * (n - 1)} + ${n}`,
+            '4': n => `Double ${n}, then double again — ${n * 2} × 2`,
+            '5': n => `Count by fives — ends in 0 or 5`,
+            '6': n => `5 × ${n} + ${n} = ${5 * n} + ${n}`,
+            '7': n => `5 × ${n} + 2 × ${n} = ${5 * n} + ${2 * n}`,
+            '8': n => `Double, double, double — 2 × ${n} × 2 × 2`,
+            '9': n => `10 × ${n} − ${n} = ${10 * n} − ${n}`,
+            '10': n => `Add a zero — ${n}0`,
+            '11': n => n <= 9 ? `Repeat the digit — ${n}${n}` : `10 × ${n} + ${n} = ${10 * n} + ${n}`,
+            '12': n => `10 × ${n} + 2 × ${n} = ${10 * n} + ${2 * n}`,
+        };
+
+        function buildTable() {
+            let facts = [];
+            for (let a = 2; a <= 12; a++)
+                for (let b = a; b <= 12; b++)
+                    facts.push([a, b]);
+            return facts;
+        }
+
+        let allFacts = buildTable();
+        let queue = [], missed = {}, correct = 0, wrong = 0, streak = 0, current = null, total = 0, done_count = 0;
+
+        function shuffle(arr) {
+            for (let i = arr.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [arr[i], arr[j]] = [arr[j], arr[i]];
+            }
+            return arr;
+        }
+
+        function startFresh() {
+            queue = shuffle([...allFacts]);
+            missed = {}; correct = 0; wrong = 0; streak = 0; done_count = 0;
+            total = queue.length;
+            document.getElementById('done-screen').style.display = 'none';
+            document.getElementById('drill-screen').style.display = 'block';
+            updateStats(); nextQuestion();
+        }
+
+        function drillMissed() {
+            const mf = Object.keys(missed).map(k => missed[k].fact);
+            if (!mf.length) return;
+            queue = shuffle([...mf, ...mf]);
+            missed = {}; correct = 0; wrong = 0; streak = 0; done_count = 0;
+            total = queue.length;
+            document.getElementById('done-screen').style.display = 'none';
+            document.getElementById('drill-screen').style.display = 'block';
+            updateStats(); nextQuestion();
+        }
+
+        function nextQuestion() {
+            if (!queue.length) { showDone(); return; }
+            const flip = Math.random() > 0.5;
+            const [a, b] = queue.pop();
+            current = flip ? [b, a] : [a, b];
+            document.getElementById('question').textContent = `${current[0]} × ${current[1]}`;
+            document.getElementById('hint-text').textContent = '';
+            document.getElementById('feedback').textContent = '';
+            document.getElementById('feedback').className = 'feedback';
+            const inp = document.getElementById('answer-input');
+            inp.value = ''; inp.className = 'answer-input'; inp.focus();
+            updateProgress(); updateMissed();
+        }
+
+        function getHintText(a, b) {
+            const key = String(Math.min(a, b)), other = Math.max(a, b);
+            return HINTS[key] ? HINTS[key](other) : `${a} × ${b} = ${a * b}`;
+        }
+
+        function showHint() {
+            if (current) document.getElementById('hint-text').textContent = getHintText(current[0], current[1]);
+        }
+
+        function submitAnswer() {
+            if (!current) return;
+            const inp = document.getElementById('answer-input');
+            const val = parseInt(inp.value);
+            if (isNaN(val)) return;
+            const ans = current[0] * current[1];
+            const key = current.join('×');
+
+            if (val === ans) {
+                inp.className = 'answer-input correct';
+                document.getElementById('feedback').textContent = streak >= 4 ? `${streak + 1} in a row` : 'Correct';
+                document.getElementById('feedback').className = 'feedback correct';
+                correct++; streak++; done_count++;
+                if (missed[key]) { missed[key].count--; if (missed[key].count <= 0) delete missed[key]; }
+                updateStats();
+                setTimeout(nextQuestion, 600);
+            } else {
+                inp.className = 'answer-input wrong';
+                document.getElementById('feedback').textContent = `The answer is ${ans} — ${getHintText(current[0], current[1])}`;
+                document.getElementById('feedback').className = 'feedback wrong';
+                wrong++; streak = 0;
+                if (!missed[key]) missed[key] = { fact: current, count: 0 };
+                missed[key].count++;
+                queue.unshift(current);
+                updateStats();
+                setTimeout(() => {
+                    inp.value = ''; inp.className = 'answer-input'; inp.focus();
+                    document.getElementById('feedback').textContent = '';
+                    document.getElementById('feedback').className = 'feedback';
+                }, 2000);
+            }
+        }
+
+        function updateStats() {
+            document.getElementById('stat-correct').textContent = correct;
+            document.getElementById('stat-wrong').textContent = wrong;
+            document.getElementById('stat-streak').textContent = streak;
+        }
+
+        function updateProgress() {
+            const pct = total > 0 ? Math.round((done_count / total) * 100) : 0;
+            document.getElementById('progress-bar').style.width = pct + '%';
+        }
+
+        function updateMissed() {
+            const keys = Object.keys(missed);
+            const sec = document.getElementById('missed-section');
+            if (!keys.length) { sec.style.display = 'none'; return; }
+            sec.style.display = 'block';
+            document.getElementById('missed-pills').innerHTML = keys.map(k => {
+                const [a, b] = missed[k].fact;
+                return `<span class="missed-pill">${a} × ${b} = ${a * b}</span>`;
+            }).join('');
+        }
+
+        function showDone() {
+            document.getElementById('drill-screen').style.display = 'none';
+            document.getElementById('done-screen').style.display = 'block';
+            const t = correct + wrong;
+            const pct = t > 0 ? Math.round((correct / t) * 100) : 0;
+            document.getElementById('done-title').textContent = pct >= 90 ? 'Excellent.' : pct >= 70 ? 'Good progress.' : 'Keep going.';
+            document.getElementById('done-sub').textContent = `${correct} correct, ${wrong} missed — ${pct}% accuracy`;
+            document.getElementById('missed-only-btn').style.display = Object.keys(missed).length ? 'inline-block' : 'none';
+        }
+
+        document.getElementById('answer-input').addEventListener('keydown', e => { if (e.key === 'Enter') submitAnswer(); });
+
+        startFresh();
+    </script>
+
+    <form action="https://www.paypal.com/donate" method="post" target="_top">
+        <input type="hidden" name="business" value="FA3KWH54X2BCU" />
+        <input type="hidden" name="no_recurring" value="0" />
+        <input type="hidden" name="item_name" value="tysm" />
+        <input type="hidden" name="currency_code" value="AUD" />
+        <input type="image" src="https://www.paypalobjects.com/en_AU/i/btn/btn_donate_SM.gif" border="0" name="submit" title="PayPal - The safer, easier way to pay online!" alt="Donate with PayPal button" />
+        <img alt="" border="0" src="https://www.paypal.com/en_AU/i/scr/pixel.gif" width="1" height="1" />
+    </form>
+
+</body>
+</html>
