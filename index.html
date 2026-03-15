@@ -720,6 +720,7 @@
                 missed[key].count++;
                 queue.unshift(current);
                 updateStats();
+                showMoronChecker();
                 setTimeout(() => {
                     inp.value = ''; inp.className = 'answer-input'; inp.focus();
                     document.getElementById('feedback').textContent = '';
