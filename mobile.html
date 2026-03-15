@@ -4,108 +4,118 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Times Tables</title>
-    <meta name="description" content="Times tables drill for mobile. Wrong answers come back until you know them.">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=EB+Garamond:wght@400;500&family=Libre+Baskerville:wght@400;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600&family=EB+Garamond:wght@400&family=Libre+Baskerville:wght@400;700&display=swap');
 
-        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+        }
 
         html, body {
             height: 100%;
-            overflow: hidden; /* page never scrolls — keyboard up always */
+            overflow: hidden;
             background: #faf9f7;
-            font-family: 'EB Garamond', 'Times New Roman', serif;
+            font-family: 'EB Garamond', serif;
             color: #1a1916;
         }
 
-        /* ── LAYOUT: fixed strips from top down ── */
-        #app {
-            display: flex;
-            flex-direction: column;
-            height: 100%;
-        }
-
-        /* header strip */
-        #header {
-            flex-shrink: 0;
+        /* HUD — hairline strip, gets out of the way */
+        #hud {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 0.5rem 1rem;
-            border-bottom: 0.5px solid #c8c4bc;
+            padding: 5px 14px;
+            border-bottom: 0.5px solid #e0ddd8;
             background: #faf9f7;
+            z-index: 10;
         }
-        .title {
+
+        #hud-title {
             font-family: 'Cormorant Garamond', serif;
+            font-size: 12px;
             font-weight: 600;
-            font-size: 17px;
-            letter-spacing: 0.14em;
+            letter-spacing: .22em;
             text-transform: uppercase;
+            color: #aaa69e;
         }
-        .mc-setting {
+
+        #hud-stats {
             display: flex;
-            align-items: center;
-            gap: 6px;
-            font-size: 11px;
-            color: #8a8680;
+            gap: 12px;
+            font-size: 10px;
+            color: #aaa69e;
             letter-spacing: .06em;
             text-transform: uppercase;
         }
-        .mc-setting input[type=range] {
-            width: 64px;
-            accent-color: #1a1916;
-        }
 
-        /* stats strip */
-        #stats {
-            flex-shrink: 0;
+            #hud-stats span b {
+                font-family: 'Libre Baskerville', serif;
+                font-size: 12px;
+                font-weight: 700;
+                color: #1a1916;
+                margin-right: 1px;
+            }
+
+        #mc-setting {
             display: flex;
-            border-bottom: 0.5px solid #c8c4bc;
-        }
-        .stat {
-            flex: 1;
-            text-align: center;
-            padding: 6px 4px;
-            border-right: 0.5px solid #c8c4bc;
-        }
-        .stat:last-child { border-right: none; }
-        .stat-num {
-            font-family: 'Libre Baskerville', serif;
-            font-size: 20px;
-            font-weight: 700;
-            line-height: 1;
-        }
-        .stat-label {
-            font-size: 9px;
-            color: #8a8680;
-            text-transform: uppercase;
-            letter-spacing: .1em;
-            margin-top: 2px;
+            align-items: center;
+            gap: 4px;
+            font-size: 10px;
+            color: #c8c4bc;
+            letter-spacing: .04em;
         }
 
-        /* progress bar */
-        #progress-wrap {
-            flex-shrink: 0;
-            height: 1px;
-            background: #c8c4bc;
+            #mc-setting input[type=range] {
+                width: 48px;
+                accent-color: #1a1916;
+            }
+
+        #mc-val {
+            font-size: 10px;
+            color: #aaa69e;
+            min-width: 18px;
         }
-        #progress-bar {
+
+        /* progress hairline */
+        #prog-wrap {
+            position: fixed;
+            top: 29px;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: #e0ddd8;
+            z-index: 10;
+        }
+
+        #prog-fill {
             height: 100%;
             background: #1a1916;
             width: 0%;
             transition: width .4s ease;
         }
 
-        /* question area — takes remaining space */
-        #question-area {
-            flex: 1;
+        /* STAGE — the whole screen below HUD */
+        #stage {
+            position: fixed;
+            top: 30px;
+            left: 0;
+            right: 0;
+            bottom: 0;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            padding: 1rem 1rem 0.5rem;
-            min-height: 0;
+            padding: 1rem 1.4rem 0.8rem;
+            gap: 0;
         }
+
         #question {
             font-family: 'Libre Baskerville', serif;
             font-size: 80px;
@@ -113,200 +123,194 @@
             letter-spacing: -2px;
             line-height: 1;
             text-align: center;
+            margin-bottom: 8px;
         }
+
         #hint-text {
             font-size: 13px;
             color: #8a8680;
             font-style: italic;
-            margin-top: 6px;
-            min-height: 18px;
             text-align: center;
+            min-height: 18px;
+            margin-bottom: 16px;
         }
 
-        /* timer bar */
         #timer-wrap {
-            flex-shrink: 0;
-            height: 2px;
-            background: #eeecea;
+            width: 100%;
+            height: 1px;
+            background: #e0ddd8;
+            margin-bottom: 16px;
         }
-        #timer-bar {
+
+        #timer-fill {
             height: 100%;
             background: #c8a060;
             width: 100%;
         }
 
-        /* input row */
-        #input-area {
-            flex-shrink: 0;
+        #input-row {
+            width: 100%;
             display: flex;
-            gap: 0;
-            border-top: 0.5px solid #c8c4bc;
+            gap: 8px;
+            margin-bottom: 10px;
         }
+
         #answer-input {
             flex: 1;
-            border: none;
-            border-right: 0.5px solid #c8c4bc;
+            min-width: 0;
+            border: 0.5px solid #c8c4bc;
+            border-radius: 2px;
             background: #fff;
             font-family: 'Libre Baskerville', serif;
-            font-size: 32px;
+            font-size: 30px;
             font-weight: 700;
             text-align: center;
             color: #1a1916;
-            padding: 14px 12px;
+            padding: 13px 8px;
             outline: none;
             -webkit-appearance: none;
-            min-width: 0;
+            transition: border-color .15s;
         }
-        #answer-input.correct { color: #3a7d5e; }
-        #answer-input.wrong   { color: #b84040; }
+
+            #answer-input.correct {
+                border-color: #3a7d5e;
+                color: #3a7d5e;
+            }
+
+            #answer-input.wrong {
+                border-color: #b84040;
+                color: #b84040;
+            }
 
         #submit-btn {
             flex-shrink: 0;
-            width: 64px;
+            width: 56px;
             background: #1a1916;
             color: #faf9f7;
             border: none;
+            border-radius: 2px;
             font-family: 'Cormorant Garamond', serif;
-            font-size: 26px;
+            font-size: 24px;
             cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
         }
-        #submit-btn:active { opacity: .7; }
 
-        /* feedback + hint strip */
-        #feedback-area {
-            flex-shrink: 0;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 6px 12px;
-            min-height: 36px;
-            border-top: 0.5px solid #eeecea;
-            background: #faf9f7;
-        }
+            #submit-btn:active {
+                opacity: .7;
+            }
+
         #feedback {
             font-size: 13px;
             font-style: italic;
-            flex: 1;
+            text-align: center;
+            min-height: 18px;
+            color: #8a8680;
         }
-        #feedback.correct { color: #3a7d5e; }
-        #feedback.wrong   { color: #b84040; }
+
+            #feedback.correct {
+                color: #3a7d5e;
+            }
+
+            #feedback.wrong {
+                color: #b84040;
+            }
 
         #hint-btn {
-            flex-shrink: 0;
+            margin-top: 10px;
             background: transparent;
             border: 0.5px solid #c8c4bc;
             border-radius: 2px;
-            padding: 4px 12px;
+            padding: 4px 14px;
             font-family: 'EB Garamond', serif;
             font-size: 11px;
             color: #8a8680;
             text-transform: uppercase;
-            letter-spacing: .08em;
+            letter-spacing: .1em;
             cursor: pointer;
         }
 
-        /* missed pills */
-        #missed-area {
-            flex-shrink: 0;
-            padding: 0 12px 8px;
-            display: none;
-        }
-        #missed-pills {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 5px;
-        }
-        .missed-pill {
-            font-family: 'EB Garamond', serif;
-            font-size: 11px;
-            padding: 2px 8px;
-            border: 0.5px solid #c8a0a0;
-            color: #b84040;
-            border-radius: 1px;
-        }
-
-        /* ── MORON CHECKER — completely isolated fixed overlay ── */
+        /* MORON CHECKER — completely isolated fixed overlay */
         #mc-overlay {
             display: none;
             position: fixed;
             inset: 0;
-            z-index: 200;
-            background: rgba(250,249,247,0.82);
-            backdrop-filter: blur(3px);
+            z-index: 100;
+            background: rgba(250,249,247,0.88);
+            backdrop-filter: blur(4px);
             flex-direction: column;
             align-items: center;
             justify-content: center;
             padding: 16px;
         }
-        #mc-overlay.visible { display: flex; }
+
+            #mc-overlay.visible {
+                display: flex;
+            }
 
         #mc-label {
             font-size: 10px;
             text-transform: uppercase;
-            letter-spacing: .18em;
+            letter-spacing: .2em;
             color: #8a8680;
-            margin-bottom: 10px;
+            margin-bottom: 12px;
         }
 
-        /* scrollable grid container — never wider than screen */
         #mc-grid-wrap {
             overflow: auto;
             max-width: 100%;
-            max-height: 52vh;
+            max-height: 55vh;
             -webkit-overflow-scrolling: touch;
         }
 
         .mc-grid {
             border-collapse: collapse;
             font-family: 'Libre Baskerville', serif;
-            /* don't stretch — let it be its natural width so scroll works */
             width: max-content;
         }
-        .mc-grid td {
-            width: 28px;
-            height: 28px;
-            text-align: center;
-            font-size: 12px;
-            border: 0.5px solid rgba(200,196,188,0.4);
-            color: rgba(106,102,96,0.3);
-        }
-        .mc-grid td.mc-header {
-            font-size: 11px;
-            color: rgba(160,156,148,0.4);
-            background: rgba(245,244,241,0.6);
-            font-style: italic;
-        }
-        .mc-grid td.mc-highlight {
-            background: #1a1916;
-            color: #faf9f7;
-            font-size: 15px;
-            font-weight: 700;
-        }
-        .mc-grid td.mc-row-header,
-        .mc-grid td.mc-col-header {
-            background: rgba(238,236,234,0.8);
-            color: #1a1916;
-            font-weight: 500;
-        }
+
+            .mc-grid td {
+                width: 28px;
+                height: 28px;
+                text-align: center;
+                font-size: 11px;
+                border: 0.5px solid rgba(200,196,188,0.35);
+                color: rgba(100,96,90,0.28);
+            }
+
+                .mc-grid td.mc-header {
+                    font-size: 10px;
+                    color: rgba(160,156,148,0.38);
+                    background: rgba(245,244,241,0.5);
+                    font-style: italic;
+                }
+
+                .mc-grid td.mc-highlight {
+                    background: #1a1916;
+                    color: #faf9f7;
+                    font-size: 14px;
+                    font-weight: 700;
+                }
+
+                .mc-grid td.mc-row-header, .mc-grid td.mc-col-header {
+                    background: rgba(238,236,234,0.85);
+                    color: #1a1916;
+                    font-weight: 500;
+                }
 
         #mc-dismiss {
-            margin-top: 12px;
+            margin-top: 14px;
             font-size: 10px;
             color: #aaa69e;
-            letter-spacing: .12em;
+            letter-spacing: .14em;
             text-transform: uppercase;
             font-style: italic;
         }
 
-        /* ── DONE SCREEN ── */
+        /* DONE */
         #done-screen {
             display: none;
             position: fixed;
             inset: 0;
-            z-index: 100;
+            z-index: 50;
             background: #faf9f7;
             flex-direction: column;
             align-items: center;
@@ -314,37 +318,45 @@
             padding: 2rem;
             text-align: center;
         }
-        #done-screen.visible { display: flex; }
+
+            #done-screen.visible {
+                display: flex;
+            }
+
         #done-title {
             font-family: 'Cormorant Garamond', serif;
             font-size: 48px;
             font-weight: 500;
-            margin-bottom: 8px;
+            margin-bottom: 6px;
         }
+
         #done-sub {
             font-size: 15px;
             color: #8a8680;
             font-style: italic;
-            margin-bottom: 2.5rem;
+            margin-bottom: 2rem;
         }
+
         .done-btn {
             width: 100%;
-            max-width: 280px;
-            padding: 14px;
+            max-width: 260px;
+            padding: 13px;
             margin-bottom: 10px;
             font-family: 'EB Garamond', serif;
-            font-size: 15px;
-            letter-spacing: .08em;
+            font-size: 14px;
+            letter-spacing: .1em;
             text-transform: uppercase;
             border-radius: 2px;
             cursor: pointer;
         }
+
         #restart-btn {
             background: #1a1916;
             color: #faf9f7;
             border: none;
         }
-        #missed-only-btn {
+
+        #missed-btn {
             background: transparent;
             border: 0.5px solid #c8c4bc;
             color: #1a1916;
@@ -353,319 +365,236 @@
     </style>
 </head>
 <body>
-<div id="app">
 
-    <div id="header">
-        <div class="title">Times Tables</div>
-        <div class="mc-setting">
-            <label for="mc-range">Checker</label>
+    <div id="hud">
+        <div id="hud-title">×</div>
+        <div id="hud-stats">
+            <span><b id="s-correct">0</b>ok</span>
+            <span><b id="s-wrong">0</b>miss</span>
+            <span><b id="s-streak">0</b>run</span>
+        </div>
+        <div id="mc-setting">
             <input type="range" id="mc-range" min="3" max="15" value="5" step="1" oninput="updateTimer(this.value)">
-            <span id="mc-label-val">5s</span>
+            <span id="mc-val">5s</span>
         </div>
     </div>
 
-    <div id="stats">
-        <div class="stat"><div class="stat-num" id="s-correct">0</div><div class="stat-label">Correct</div></div>
-        <div class="stat"><div class="stat-num" id="s-wrong">0</div><div class="stat-label">Missed</div></div>
-        <div class="stat"><div class="stat-num" id="s-streak">0</div><div class="stat-label">Streak</div></div>
-    </div>
+    <div id="prog-wrap"><div id="prog-fill"></div></div>
 
-    <div id="progress-wrap"><div id="progress-bar"></div></div>
-
-    <div id="question-area">
+    <div id="stage">
         <div id="question">?×?</div>
         <div id="hint-text"></div>
-    </div>
-
-    <div id="timer-wrap"><div id="timer-bar"></div></div>
-
-    <div id="input-area">
-        <input id="answer-input" type="number" inputmode="numeric" placeholder="—" autocomplete="off" />
-        <button id="submit-btn">→</button>
-    </div>
-
-    <div id="feedback-area">
+        <div id="timer-wrap"><div id="timer-fill"></div></div>
+        <div id="input-row">
+            <input id="answer-input" type="number" inputmode="numeric" placeholder="—" autocomplete="off">
+            <button id="submit-btn">→</button>
+        </div>
         <div id="feedback"></div>
         <button id="hint-btn">Hint</button>
     </div>
 
-    <div id="missed-area">
-        <div id="missed-pills"></div>
+    <div id="mc-overlay" tabindex="-1">
+        <div id="mc-label"></div>
+        <div id="mc-grid-wrap"><table class="mc-grid" id="mc-grid"></table></div>
+        <div id="mc-dismiss">Tap or type to dismiss</div>
     </div>
 
-</div>
+    <div id="done-screen">
+        <div id="done-title"></div>
+        <div id="done-sub"></div>
+        <button class="done-btn" id="restart-btn">Full drill again</button>
+        <button class="done-btn" id="missed-btn">Missed only</button>
+    </div>
 
-<!-- MORON CHECKER — fixed overlay, isolated from page layout -->
-<div id="mc-overlay" tabindex="-1">
-    <div id="mc-label"></div>
-    <div id="mc-grid-wrap"><table class="mc-grid" id="mc-grid"></table></div>
-    <div id="mc-dismiss">Tap or type to dismiss</div>
-</div>
+    <script>
+        const HINTS = {
+            '2': n => `${n}+${n}`,
+            '3': n => `3×${n - 1}+${n} = ${3 * (n - 1)}+${n}`,
+            '4': n => `Double ${n}, double again`,
+            '5': n => `Ends in 0 or 5`,
+            '6': n => `5×${n}+${n} = ${5 * n}+${n}`,
+            '7': n => `5×${n}+2×${n} = ${5 * n}+${2 * n}`,
+            '8': n => `Double, double, double`,
+            '9': n => `10×${n}−${n} = ${10 * n}−${n}`,
+            '10': n => `Just add a zero`,
+            '11': n => n <= 9 ? `Repeat the digit — ${n}${n}` : `10×${n}+${n}`,
+            '12': n => `10×${n}+2×${n} = ${10 * n}+${2 * n}`,
+        };
 
-<!-- DONE SCREEN -->
-<div id="done-screen">
-    <div id="done-title">Complete.</div>
-    <div id="done-sub"></div>
-    <button class="done-btn" id="restart-btn">Full drill again</button>
-    <button class="done-btn" id="missed-only-btn">Missed only</button>
-</div>
-
-<script>
-    const HINTS = {
-        '2': n => `${n} + ${n}`,
-        '3': n => `3×${n-1} + ${n} = ${3*(n-1)} + ${n}`,
-        '4': n => `Double ${n}, double again — ${n*2}×2`,
-        '5': n => `Count by 5s — ends in 0 or 5`,
-        '6': n => `5×${n} + ${n} = ${5*n} + ${n}`,
-        '7': n => `5×${n} + 2×${n} = ${5*n} + ${2*n}`,
-        '8': n => `Double, double, double — 2×${n}×2×2`,
-        '9': n => `10×${n} − ${n} = ${10*n} − ${n}`,
-        '10': n => `Add a zero — ${n}0`,
-        '11': n => n<=9 ? `Repeat the digit — ${n}${n}` : `10×${n} + ${n} = ${10*n}+${n}`,
-        '12': n => `10×${n} + 2×${n} = ${10*n} + ${2*n}`,
-    };
-
-    function buildTable() {
-        let f = [];
-        for (let a=2; a<=12; a++) for (let b=a; b<=12; b++) f.push([a,b]);
-        return f;
-    }
-
-    let allFacts = buildTable();
-    let queue=[], missed={}, correct=0, wrong=0, streak=0, current=null, total=0, doneCount=0;
-    let mcTimer=null, mcFrame=null, mcStart=null, mcDur=5000, mcVisible=false;
-
-    function updateTimer(v) {
-        document.getElementById('mc-label-val').textContent = v+'s';
-        mcDur = parseInt(v)*1000;
-    }
-
-    function shuffle(a) {
-        for (let i=a.length-1;i>0;i--) { const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; }
-        return a;
-    }
-
-    function startFresh() {
-        queue = shuffle([...allFacts]);
-        missed={}; correct=0; wrong=0; streak=0; doneCount=0; total=queue.length;
-        document.getElementById('done-screen').classList.remove('visible');
-        updateStats(); nextQ();
-    }
-
-    function drillMissed() {
-        const mf = Object.keys(missed).map(k=>missed[k].fact);
-        if (!mf.length) return;
-        queue = shuffle([...mf,...mf]);
-        missed={}; correct=0; wrong=0; streak=0; doneCount=0; total=queue.length;
-        document.getElementById('done-screen').classList.remove('visible');
-        updateStats(); nextQ();
-    }
-
-    function nextQ() {
-        clearMC();
-        if (!queue.length) { showDone(); return; }
-        const flip = Math.random()>.5;
-        const [a,b] = queue.pop();
-        current = flip ? [b,a] : [a,b];
-        document.getElementById('question').textContent = `${current[0]}×${current[1]}`;
-        document.getElementById('hint-text').textContent = '';
-        document.getElementById('feedback').textContent = '';
-        document.getElementById('feedback').className = '';
-        const inp = document.getElementById('answer-input');
-        inp.value=''; inp.className=''; inp.focus();
-        updateProgress(); updateMissed();
-        startMCTimer();
-    }
-
-    // ── MORON CHECKER ──
-    function startMCTimer() {
-        clearTimeout(mcTimer); cancelAnimationFrame(mcFrame);
-        mcStart = performance.now();
-        tickBar();
-        mcTimer = setTimeout(showMC, mcDur);
-    }
-
-    function tickBar() {
-        const bar = document.getElementById('timer-bar');
-        function frame(now) {
-            const pct = Math.max(0, 1-(now-mcStart)/mcDur);
-            bar.style.width = (pct*100)+'%';
-            if (pct>0) mcFrame = requestAnimationFrame(frame);
+        function buildTable() {
+            let f = [];
+            for (let a = 2; a <= 12; a++) for (let b = a; b <= 12; b++) f.push([a, b]);
+            return f;
         }
-        mcFrame = requestAnimationFrame(frame);
-    }
 
-    function clearMC() {
-        clearTimeout(mcTimer); cancelAnimationFrame(mcFrame);
-        mcTimer=null; mcFrame=null; mcStart=null; mcVisible=false;
-        document.getElementById('mc-overlay').classList.remove('visible');
-        document.getElementById('timer-bar').style.width='100%';
-    }
+        let allFacts = buildTable(), queue = [], missed = {};
+        let correct = 0, wrong = 0, streak = 0, current = null, total = 0, doneCount = 0;
+        let mcTimer = null, mcFrame = null, mcStart = null, mcDur = 5000, mcVisible = false;
 
-    function dismissMC() {
-        if (!mcVisible) return;
-        mcVisible=false;
-        document.getElementById('mc-overlay').classList.remove('visible');
-        document.getElementById('answer-input').focus();
-    }
+        function updateTimer(v) { document.getElementById('mc-val').textContent = v + 's'; mcDur = parseInt(v) * 1000; }
+        function shuffle(a) { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1));[a[i], a[j]] = [a[j], a[i]]; } return a; }
 
-    function showMC() {
-        if (!current) return;
-        const [qa,qb] = current;
-        const label = mcDur>2500 ? `yeah — ${qa}×${qb}` : `moron checker — ${qa}×${qb}`;
-        document.getElementById('mc-label').textContent = label;
-        buildGrid(qa, qb);
-        mcVisible=true;
-        document.getElementById('mc-overlay').classList.add('visible');
-        // keep keyboard up
-        document.getElementById('answer-input').focus();
-        // center the highlight cell in the scroll container
-        setTimeout(() => {
-            const hl = document.querySelector('.mc-highlight');
-            const wrap = document.getElementById('mc-grid-wrap');
-            if (hl && wrap) {
-                wrap.scrollLeft = hl.offsetLeft - wrap.clientWidth/2 + hl.offsetWidth/2;
-                wrap.scrollTop  = hl.offsetTop  - wrap.clientHeight/2 + hl.offsetHeight/2;
+        function startFresh() {
+            queue = shuffle([...allFacts]);
+            missed = {}; correct = 0; wrong = 0; streak = 0; doneCount = 0; total = queue.length;
+            document.getElementById('done-screen').classList.remove('visible');
+            updateStats(); nextQ();
+        }
+
+        function drillMissed() {
+            const mf = Object.keys(missed).map(k => missed[k].fact);
+            if (!mf.length) return;
+            queue = shuffle([...mf, ...mf]);
+            missed = {}; correct = 0; wrong = 0; streak = 0; doneCount = 0; total = queue.length;
+            document.getElementById('done-screen').classList.remove('visible');
+            updateStats(); nextQ();
+        }
+
+        function nextQ() {
+            clearMC();
+            if (!queue.length) { showDone(); return; }
+            const flip = Math.random() > .5;
+            const [a, b] = queue.pop();
+            current = flip ? [b, a] : [a, b];
+            document.getElementById('question').textContent = `${current[0]}×${current[1]}`;
+            document.getElementById('hint-text').textContent = '';
+            document.getElementById('feedback').textContent = '';
+            document.getElementById('feedback').className = '';
+            const inp = document.getElementById('answer-input');
+            inp.value = ''; inp.className = ''; inp.focus();
+            updateProgress(); startMCTimer();
+        }
+
+        function startMCTimer() {
+            clearTimeout(mcTimer); cancelAnimationFrame(mcFrame);
+            mcStart = performance.now(); tickBar();
+            mcTimer = setTimeout(showMC, mcDur);
+        }
+
+        function tickBar() {
+            const fill = document.getElementById('timer-fill');
+            function frame(now) {
+                const pct = Math.max(0, 1 - (now - mcStart) / mcDur);
+                fill.style.width = (pct * 100) + '%';
+                if (pct > 0) mcFrame = requestAnimationFrame(frame);
             }
-        }, 40);
-    }
-
-    function buildGrid(qa, qb) {
-        const table = document.getElementById('mc-grid');
-        table.innerHTML = '';
-        const cols = [];
-        for (let c=2;c<=12;c++) cols.push(c);
-
-        // header row
-        const hr = document.createElement('tr');
-        const corner = document.createElement('td');
-        corner.className='mc-header'; corner.textContent='×'; hr.appendChild(corner);
-        for (const c of cols) {
-            const th=document.createElement('td');
-            th.textContent=c;
-            th.className = c===qb ? 'mc-col-header' : 'mc-header';
-            hr.appendChild(th);
+            mcFrame = requestAnimationFrame(frame);
         }
-        table.appendChild(hr);
 
-        // data rows
-        for (let r=2;r<=12;r++) {
-            const tr=document.createElement('tr');
-            const rh=document.createElement('td');
-            rh.textContent=r;
-            rh.className = r===qa ? 'mc-row-header' : 'mc-header';
-            tr.appendChild(rh);
-            for (const c of cols) {
-                const td=document.createElement('td');
-                td.textContent=r*c;
-                if (r===qa && c===qb) {
-                    td.className='mc-highlight';
-                } else if (r===qa || c===qb) {
-                    td.style.background='rgba(245,240,232,0.9)';
-                    td.style.color='#9a8060';
-                }
-                tr.appendChild(td);
-            }
-            table.appendChild(tr);
+        function clearMC() {
+            clearTimeout(mcTimer); cancelAnimationFrame(mcFrame);
+            mcTimer = null; mcFrame = null; mcStart = null; mcVisible = false;
+            document.getElementById('mc-overlay').classList.remove('visible');
+            document.getElementById('timer-fill').style.width = '100%';
         }
-    }
 
-    function getHint(a,b) {
-        const key=String(Math.min(a,b)), other=Math.max(a,b);
-        return HINTS[key] ? HINTS[key](other) : `${a}×${b}=${a*b}`;
-    }
+        function dismissMC() {
+            if (!mcVisible) return;
+            mcVisible = false;
+            document.getElementById('mc-overlay').classList.remove('visible');
+            document.getElementById('answer-input').focus();
+        }
 
-    function submitAnswer() {
-        if (!current) return;
-        if (mcVisible) { dismissMC(); return; }
-        clearMC();
-        const inp=document.getElementById('answer-input');
-        const val=parseInt(inp.value);
-        if (isNaN(val)) return;
-        const ans=current[0]*current[1];
-        const key=current.join('×');
-
-        if (val===ans) {
-            inp.className='correct';
-            document.getElementById('feedback').textContent = streak>=4 ? `${streak+1} in a row` : 'Correct';
-            document.getElementById('feedback').className='correct';
-            correct++; streak++; doneCount++;
-            if (missed[key]) { missed[key].count--; if (missed[key].count<=0) delete missed[key]; }
-            updateStats();
-            setTimeout(nextQ, 500);
-        } else {
-            inp.className='wrong';
-            document.getElementById('feedback').textContent = `${ans} — ${getHint(current[0],current[1])}`;
-            document.getElementById('feedback').className='wrong';
-            wrong++; streak=0;
-            if (!missed[key]) missed[key]={fact:current,count:0};
-            missed[key].count++;
-            queue.unshift(current);
-            updateStats();
-            showMC();
+        function showMC() {
+            if (!current) return;
+            const [qa, qb] = current;
+            document.getElementById('mc-label').textContent = mcDur > 2500 ? `yeah — ${qa}×${qb}` : `moron checker — ${qa}×${qb}`;
+            buildGrid(qa, qb);
+            mcVisible = true;
+            document.getElementById('mc-overlay').classList.add('visible');
+            document.getElementById('answer-input').focus();
             setTimeout(() => {
-                inp.value=''; inp.className='';
-                document.getElementById('feedback').textContent='';
-                document.getElementById('feedback').className='';
-            }, 500);
+                const hl = document.querySelector('.mc-highlight');
+                const wrap = document.getElementById('mc-grid-wrap');
+                if (hl && wrap) {
+                    wrap.scrollLeft = hl.offsetLeft - wrap.clientWidth / 2 + hl.offsetWidth / 2;
+                    wrap.scrollTop = hl.offsetTop - wrap.clientHeight / 2 + hl.offsetHeight / 2;
+                }
+            }, 40);
         }
-    }
 
-    function updateStats() {
-        document.getElementById('s-correct').textContent=correct;
-        document.getElementById('s-wrong').textContent=wrong;
-        document.getElementById('s-streak').textContent=streak;
-    }
+        function buildGrid(qa, qb) {
+            const table = document.getElementById('mc-grid');
+            table.innerHTML = '';
+            const cols = [];
+            for (let c = 2; c <= 12; c++) cols.push(c);
+            const hr = document.createElement('tr');
+            const corner = document.createElement('td');
+            corner.className = 'mc-header'; corner.textContent = '×'; hr.appendChild(corner);
+            for (const c of cols) { const th = document.createElement('td'); th.textContent = c; th.className = c === qb ? 'mc-col-header' : 'mc-header'; hr.appendChild(th); }
+            table.appendChild(hr);
+            for (let r = 2; r <= 12; r++) {
+                const tr = document.createElement('tr');
+                const rh = document.createElement('td'); rh.textContent = r; rh.className = r === qa ? 'mc-row-header' : 'mc-header'; tr.appendChild(rh);
+                for (const c of cols) {
+                    const td = document.createElement('td'); td.textContent = r * c;
+                    if (r === qa && c === qb) td.className = 'mc-highlight';
+                    else if (r === qa || c === qb) { td.style.background = 'rgba(245,240,232,0.9)'; td.style.color = '#9a8060'; }
+                    tr.appendChild(td);
+                }
+                table.appendChild(tr);
+            }
+        }
 
-    function updateProgress() {
-        const pct=total>0?Math.round((doneCount/total)*100):0;
-        document.getElementById('progress-bar').style.width=pct+'%';
-    }
+        function getHint(a, b) { const key = String(Math.min(a, b)), other = Math.max(a, b); return HINTS[key] ? HINTS[key](other) : `${a}×${b}=${a * b}`; }
 
-    function updateMissed() {
-        const keys=Object.keys(missed);
-        const area=document.getElementById('missed-area');
-        if (!keys.length) { area.style.display='none'; return; }
-        area.style.display='block';
-        document.getElementById('missed-pills').innerHTML=keys.map(k=>{
-            const [a,b]=missed[k].fact;
-            return `<span class="missed-pill">${a}×${b}=${a*b}</span>`;
-        }).join('');
-    }
+        function submit() {
+            if (!current) return;
+            if (mcVisible) { dismissMC(); return; }
+            clearMC();
+            const inp = document.getElementById('answer-input');
+            const val = parseInt(inp.value);
+            if (isNaN(val)) return;
+            const ans = current[0] * current[1];
+            const key = current.join('×');
 
-    function showDone() {
-        clearMC();
-        const t=correct+wrong;
-        const pct=t>0?Math.round((correct/t)*100):0;
-        document.getElementById('done-title').textContent = pct>=90?'Excellent.':pct>=70?'Good progress.':'Keep going.';
-        document.getElementById('done-sub').textContent = `${correct} correct, ${wrong} missed — ${pct}%`;
-        document.getElementById('missed-only-btn').style.display = Object.keys(missed).length?'block':'none';
-        document.getElementById('done-screen').classList.add('visible');
-    }
+            if (val === ans) {
+                inp.className = 'correct';
+                document.getElementById('feedback').textContent = streak >= 4 ? `${streak + 1} in a row` : 'Correct';
+                document.getElementById('feedback').className = 'correct';
+                correct++; streak++; doneCount++;
+                if (missed[key]) { missed[key].count--; if (missed[key].count <= 0) delete missed[key]; }
+                updateStats(); setTimeout(nextQ, 500);
+            } else {
+                inp.className = 'wrong';
+                document.getElementById('feedback').textContent = `${ans} — ${getHint(current[0], current[1])}`;
+                document.getElementById('feedback').className = 'wrong';
+                wrong++; streak = 0;
+                if (!missed[key]) missed[key] = { fact: current, count: 0 };
+                missed[key].count++;
+                queue.unshift(current);
+                updateStats(); showMC();
+                setTimeout(() => { inp.value = ''; inp.className = ''; document.getElementById('feedback').textContent = ''; document.getElementById('feedback').className = ''; }, 500);
+            }
+        }
 
-    // input: Enter submits
-    document.getElementById('answer-input').addEventListener('keydown', e => {
-        if (e.key==='Enter') submitAnswer();
-    });
+        function updateStats() {
+            document.getElementById('s-correct').textContent = correct;
+            document.getElementById('s-wrong').textContent = wrong;
+            document.getElementById('s-streak').textContent = streak;
+        }
+        function updateProgress() {
+            const pct = total > 0 ? Math.round((doneCount / total) * 100) : 0;
+            document.getElementById('prog-fill').style.width = pct + '%';
+        }
+        function showDone() {
+            clearMC();
+            const t = correct + wrong, pct = t > 0 ? Math.round((correct / t) * 100) : 0;
+            document.getElementById('done-title').textContent = pct >= 90 ? 'Excellent.' : pct >= 70 ? 'Good progress.' : 'Keep going.';
+            document.getElementById('done-sub').textContent = `${correct} correct, ${wrong} missed — ${pct}%`;
+            document.getElementById('missed-btn').style.display = Object.keys(missed).length ? 'block' : 'none';
+            document.getElementById('done-screen').classList.add('visible');
+        }
 
-    // any key except Enter dismisses MC
-    document.addEventListener('keydown', e => {
-        if (e.key==='Enter') return;
-        if (mcVisible) dismissMC();
-    });
+        document.getElementById('answer-input').addEventListener('keydown', e => { if (e.key === 'Enter') submit(); });
+        document.addEventListener('keydown', e => { if (e.key === 'Enter') return; if (mcVisible) dismissMC(); });
+        document.getElementById('mc-overlay').addEventListener('click', dismissMC);
+        document.getElementById('submit-btn').addEventListener('click', submit);
+        document.getElementById('hint-btn').addEventListener('click', () => { if (current) document.getElementById('hint-text').textContent = getHint(current[0], current[1]); });
+        document.getElementById('restart-btn').addEventListener('click', startFresh);
+        document.getElementById('missed-btn').addEventListener('click', drillMissed);
 
-    // tap overlay to dismiss
-    document.getElementById('mc-overlay').addEventListener('click', dismissMC);
-
-    // buttons
-    document.getElementById('submit-btn').addEventListener('click', submitAnswer);
-    document.getElementById('hint-btn').addEventListener('click', () => {
-        if (current) document.getElementById('hint-text').textContent = getHint(current[0],current[1]);
-    });
-    document.getElementById('restart-btn').addEventListener('click', startFresh);
-    document.getElementById('missed-only-btn').addEventListener('click', drillMissed);
-
-    startFresh();
-</script>
+        startFresh();
+    </script>
 </body>
 </html>
