@@ -1,0 +1,894 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, interactive-widget=resizes-visual">
+    <title>Times Tables — Add &amp; Subtract</title>
+    <script>try{if(localStorage.getItem('dark')==='1')document.documentElement.classList.add('dark');}catch(e){}</script>
+    <link rel="stylesheet" href="shared.css">
+    <style>
+        * { -webkit-tap-highlight-color: transparent; }
+
+        html, body {
+            height: 100%;
+            overflow: hidden;
+            background: #faf9f7;
+            font-family: 'EB Garamond', serif;
+            color: #1a1916;
+            position: fixed;
+            width: 100%;
+        }
+        html.dark body { background: #0d0f12; color: #c8c4bc; }
+
+        /* ── TOP BAR ─────────────────────────────────────────────────────── */
+        #topbar {
+            position: fixed;
+            top: 0; left: 0; right: 0;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 14px;
+            background: #faf9f7;
+            border-bottom: 0.5px solid #e0ddd8;
+            z-index: 300;
+        }
+        html.dark #topbar { background: #0d0f12; border-bottom-color: #252830; }
+
+        #mode-btn {
+            background: none;
+            border: none;
+            padding: 4px 0;
+            font-family: 'EB Garamond', serif;
+            font-size: 13px;
+            letter-spacing: .16em;
+            text-transform: uppercase;
+            color: #aaa69e;
+            cursor: pointer;
+            user-select: none;
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            line-height: 1;
+        }
+        #mode-btn:active { color: #1a1916; }
+        html.dark #mode-btn { color: #6a6660; }
+        html.dark #mode-btn:active { color: #c8c4bc; }
+
+        #topbar-dark {
+            background: none;
+            border: none;
+            padding: 4px 0;
+            font-size: 16px;
+            color: #aaa69e;
+            cursor: pointer;
+            user-select: none;
+            line-height: 1;
+        }
+        html.dark #topbar-dark { color: #6a6660; }
+
+        /* ── MODE DROPDOWN ───────────────────────────────────────────────── */
+        #menu-backdrop {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 280;
+        }
+        #menu-backdrop.open { display: block; }
+
+        #mode-menu {
+            position: fixed;
+            top: 44px;
+            left: 0;
+            min-width: 192px;
+            background: #faf9f7;
+            border: 0.5px solid #e0ddd8;
+            border-top: none;
+            z-index: 290;
+            display: none;
+        }
+        html.dark #mode-menu { background: #0d0f12; border-color: #252830; }
+
+        #mode-menu.open {
+            display: block;
+            animation: menu-drop .14s ease;
+        }
+        @keyframes menu-drop {
+            from { opacity: 0; transform: translateY(-5px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        .mode-item {
+            display: flex;
+            align-items: baseline;
+            gap: 11px;
+            padding: 13px 18px;
+            font-family: 'EB Garamond', serif;
+            font-size: 15px;
+            letter-spacing: .04em;
+            color: #8a8680;
+            text-decoration: none;
+            border-bottom: 0.5px solid #e0ddd8;
+        }
+        .mode-item:last-child { border-bottom: none; }
+        .mode-item:active { background: #f0ede8; }
+        html.dark .mode-item { color: #6a6660; border-bottom-color: #252830; }
+        html.dark .mode-item:active { background: #13161a; }
+
+        .mode-item.current {
+            color: #1a1916;
+        }
+        html.dark .mode-item.current { color: #faf9f7; }
+
+        .mode-sym {
+            font-family: 'Libre Baskerville', serif;
+            font-weight: 700;
+            font-size: 14px;
+            width: 14px;
+            text-align: center;
+            flex-shrink: 0;
+            color: #c8c4bc;
+        }
+        .mode-item.current .mode-sym { color: #1a1916; }
+        html.dark .mode-sym { color: #3d4148; }
+        html.dark .mode-item.current .mode-sym { color: #faf9f7; }
+
+        /* ── SUB-MODE ROW ─────────────────────────────────────────────────── */
+        #sub-mode-row {
+            position: fixed; top: 44px; left: 0; right: 0;
+            height: 32px; display: flex; align-items: center; justify-content: center;
+            gap: 16px; background: #faf9f7;
+            border-bottom: 0.5px solid #e0ddd8; z-index: 10;
+        }
+        html.dark #sub-mode-row { background: #0d0f12; border-bottom-color: #252830; }
+        .sub-btn {
+            font-family: 'EB Garamond', serif; font-size: 11px;
+            letter-spacing: .14em; text-transform: uppercase; color: #aaa69e;
+            cursor: pointer; user-select: none; background: none; border: none; padding: 0;
+        }
+        .sub-btn.active { color: #1a1916; }
+        html.dark .sub-btn { color: #6a6660; }
+        html.dark .sub-btn.active { color: #faf9f7; }
+
+        /* ── PROGRESS HAIRLINE ───────────────────────────────────────────── */
+        #prog-wrap {
+            position: fixed;
+            top: 76px; left: 0; right: 0;
+            height: 1px;
+            background: #e0ddd8;
+            z-index: 10;
+        }
+        html.dark #prog-wrap { background: #252830; }
+
+        #prog-fill {
+            height: 100%;
+            background: #1a1916;
+            width: 0%;
+            transition: width .4s ease;
+        }
+        html.dark #prog-fill { background: #c8c4bc; }
+
+        /* ── QUESTION AREA ───────────────────────────────────────────────── */
+        #question-area {
+            position: fixed;
+            top: 77px;
+            left: 0; right: 0;
+            /* bottom set dynamically by fitLayout() */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 0 1.5rem;
+        }
+
+        #question {
+            font-family: 'Libre Baskerville', serif;
+            font-size: 52px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            line-height: 1;
+            text-align: center;
+            color: #1a1916;
+        }
+        html.dark #question { color: #faf9f7; }
+
+        #feedback {
+            font-size: 14px;
+            font-style: italic;
+            text-align: center;
+            min-height: 20px;
+            margin-top: 12px;
+            color: #8a8680;
+            letter-spacing: .02em;
+        }
+        #feedback.correct { color: #3a7d5e; }
+        #feedback.wrong   { color: #b84040; }
+        html.dark #feedback { color: #6a6660; }
+
+        /* ── INPUT ROW (pinned above keyboard) ───────────────────────────── */
+        #input-row {
+            position: fixed;
+            left: 0; right: 0;
+            /* bottom set dynamically by fitLayout() */
+            padding: 10px 14px 12px;
+            display: flex;
+            gap: 8px;
+            background: #faf9f7;
+            border-top: 0.5px solid #e0ddd8;
+            z-index: 20;
+        }
+        html.dark #input-row { background: #0d0f12; border-top-color: #252830; }
+
+        #answer-input {
+            flex: 1;
+            min-width: 0;
+            border: 0.5px solid #c8c4bc;
+            border-radius: 2px;
+            background: #fff;
+            font-family: 'Libre Baskerville', serif;
+            font-size: 30px;
+            font-weight: 700;
+            text-align: center;
+            color: #1a1916;
+            padding: 13px 8px;
+            outline: none;
+            -webkit-appearance: none;
+            transition: border-color .15s;
+        }
+        #answer-input:focus    { border-color: #1a1916; }
+        #answer-input.correct  { border-color: #3a7d5e; color: #3a7d5e; }
+        #answer-input.wrong    { border-color: #b84040; color: #b84040; }
+        html.dark #answer-input            { background: #13161a; border-color: #252830; color: #faf9f7; }
+        html.dark #answer-input:focus      { border-color: #c8c4bc; }
+        html.dark #answer-input.correct    { border-color: #3a7d5e; color: #3a7d5e; }
+        html.dark #answer-input.wrong      { border-color: #b84040; color: #b84040; }
+
+        #submit-btn {
+            flex-shrink: 0;
+            width: 56px;
+            background: #1a1916;
+            color: #faf9f7;
+            border: none;
+            border-radius: 2px;
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 24px;
+            cursor: pointer;
+        }
+        #submit-btn:active { opacity: .7; }
+        html.dark #submit-btn { background: #c8c4bc; color: #0d0f12; }
+
+        /* ── MC OVERLAY ──────────────────────────────────────────────────── */
+        #mc-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            z-index: 100;
+            background: rgba(250,249,247,0.88);
+            backdrop-filter: blur(4px);
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+        }
+        #mc-overlay.visible { display: flex; }
+        html.dark #mc-overlay { background: rgba(13,15,18,0.92); }
+
+        #mc-label {
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: .2em;
+            color: #8a8680;
+            margin-bottom: 12px;
+        }
+        html.dark #mc-label { color: #6a6660; }
+
+        #mc-content {
+            font-family: 'Libre Baskerville', serif; text-align: center;
+            padding: 1.2rem 2rem; border: 0.5px solid #c8c4bc; border-radius: 2px;
+            background: #fff; min-width: 200px; max-height: calc(100% - 80px); overflow-y: auto;
+        }
+        html.dark #mc-content { background: #13161a; border-color: #252830; }
+        .mc-strategy-label {
+            font-family: 'EB Garamond', serif; font-size: 11px; text-transform: uppercase;
+            letter-spacing: .12em; color: #aaa69e; margin-bottom: 8px;
+        }
+        html.dark .mc-strategy-label { color: #6a6660; }
+        .mc-step { font-size: 16px; color: #1a1916; margin: 5px 0; letter-spacing: -0.3px; }
+        .mc-step strong { font-weight: 700; }
+        .mc-step.answer { font-size: 26px; font-weight: 700; margin-top: 6px; }
+        html.dark .mc-step { color: #c8c4bc; }
+        html.dark .mc-step strong { color: #faf9f7; }
+        html.dark .mc-step.answer { color: #faf9f7; }
+        .mc-fact-divider { border: none; border-top: 0.5px solid #c8c4bc; margin: 8px auto; width: 60px; }
+        html.dark .mc-fact-divider { border-top-color: #252830; }
+
+        #mc-hint {
+            margin-top: 10px;
+            font-size: 12px;
+            font-style: italic;
+            color: #c8a060;
+            letter-spacing: .04em;
+            text-align: center;
+        }
+
+        #mc-dismiss {
+            margin-top: 14px;
+            font-size: 10px;
+            color: #aaa69e;
+            letter-spacing: .14em;
+            text-transform: uppercase;
+            font-style: italic;
+        }
+        html.dark #mc-dismiss { color: #6a6660; }
+
+        /* ── DONE SCREEN ─────────────────────────────────────────────────── */
+        #done-screen {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 50;
+            background: #faf9f7;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            text-align: center;
+        }
+        #done-screen.visible { display: flex; }
+        html.dark #done-screen { background: #0d0f12; }
+
+        #done-title {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 48px;
+            font-weight: 500;
+            margin-bottom: 6px;
+        }
+        html.dark #done-title { color: #faf9f7; }
+
+        #done-sub {
+            font-size: 15px;
+            color: #8a8680;
+            font-style: italic;
+            margin-bottom: 2rem;
+        }
+        html.dark #done-sub { color: #6a6660; }
+
+        #done-time {
+            font-size: 15px;
+            color: #8a8680;
+            font-style: italic;
+            margin-bottom: 0.5rem;
+        }
+        html.dark #done-time { color: #6a6660; }
+
+        .done-btn {
+            width: 100%;
+            max-width: 260px;
+            padding: 13px;
+            margin-bottom: 10px;
+            font-family: 'EB Garamond', serif;
+            font-size: 14px;
+            letter-spacing: .1em;
+            text-transform: uppercase;
+            border-radius: 2px;
+            cursor: pointer;
+        }
+        #restart-btn { background: #1a1916; color: #faf9f7; border: none; }
+        html.dark #restart-btn { background: #c8c4bc; color: #0d0f12; }
+        #missed-btn  { background: transparent; border: 0.5px solid #c8c4bc; color: #1a1916; display: none; }
+        html.dark #missed-btn { border-color: #252830; color: #c8c4bc; }
+
+        #done-history { margin-top: 1.5rem; text-align: center; }
+    </style>
+</head>
+<body>
+
+    <!-- TOP BAR -->
+    <div id="topbar">
+        <button id="mode-btn" aria-label="Mode menu">☰ Mode</button>
+        <button id="topbar-dark" onclick="toggleDark()" aria-label="Toggle dark mode">☽</button>
+    </div>
+
+    <!-- MODE DROPDOWN -->
+    <div id="menu-backdrop"></div>
+    <nav id="mode-menu" role="menu">
+        <a href="mobile.html"              class="mode-item"         role="menuitem"><span class="mode-sym">×</span>Multiply</a>
+        <a href="division-mobile.html"     class="mode-item"         role="menuitem"><span class="mode-sym">÷</span>Division</a>
+        <a href="addsubtract-mobile.html"  class="mode-item current" role="menuitem"><span class="mode-sym">+</span>Add / Sub</a>
+        <a href="fractions-mobile.html"    class="mode-item"         role="menuitem"><span class="mode-sym">½</span>Fractions</a>
+    </nav>
+
+    <!-- SUB-MODE ROW -->
+    <div id="sub-mode-row">
+        <button class="sub-btn active" data-mode="singles" onclick="setMode('singles')">1-digit</button>
+        <button class="sub-btn" data-mode="add" onclick="setMode('add')">+ Add</button>
+        <button class="sub-btn" data-mode="sub" onclick="setMode('sub')">− Sub</button>
+        <button class="sub-btn" data-mode="mix" onclick="setMode('mix')">± Mix</button>
+    </div>
+
+    <!-- PROGRESS HAIRLINE -->
+    <div id="prog-wrap"><div id="prog-fill"></div></div>
+
+    <!-- QUESTION AREA -->
+    <div id="question-area">
+        <div id="question">? + ?</div>
+        <div id="feedback"></div>
+    </div>
+
+    <!-- INPUT ROW -->
+    <div id="input-row">
+        <input id="answer-input" type="number" inputmode="numeric" placeholder="—" autocomplete="off">
+        <button id="submit-btn">→</button>
+    </div>
+
+    <!-- Hidden DOM nodes required by shared.js -->
+    <div id="timer-wrap" style="display:none"><div id="timer-fill"></div></div>
+    <div id="hint-text"  style="display:none"></div>
+    <span id="s-correct" style="display:none">0</span>
+    <span id="s-wrong"   style="display:none">0</span>
+    <span id="s-streak"  style="display:none">0</span>
+
+    <!-- MC OVERLAY -->
+    <div id="mc-overlay" tabindex="-1">
+        <div id="mc-label"></div>
+        <div id="mc-content"></div>
+        <div id="mc-hint"></div>
+        <div id="mc-dismiss">Tap or type to dismiss</div>
+    </div>
+
+    <!-- DONE SCREEN -->
+    <div id="done-screen">
+        <div id="done-title"></div>
+        <div id="done-sub"></div>
+        <div id="done-time"></div>
+        <button class="done-btn" id="restart-btn">Full drill again</button>
+        <button class="done-btn" id="missed-btn">Missed only</button>
+        <div id="done-history"></div>
+    </div>
+
+    <script src="shared.js"></script>
+    <script>
+        // ── STATE ──────────────────────────────────────────────────────────────
+        let currentMode = 'singles';
+        let queue = [], missed = {}, correct = 0, wrong = 0, streak = 0, current = null, total = 0, doneCount = 0;
+        let drillStart = null;
+        let mcVisible = false;
+
+        // ── FACT POOL ──────────────────────────────────────────────────────────
+
+        function classifySingle(a, b, op) {
+            if (op === '+') {
+                if (a === b)                        return 'doubles';
+                if (a + b === 10)                   return 'bonds';
+                if (Math.abs(a - b) <= 2)           return 'near-doubles';
+                return 'recall';
+            } else {
+                if (b === a / 2 && a % 2 === 0)    return 'doubles';
+                if (b + a === 10 || a === 10)       return 'bonds';
+                if (Math.abs(a - 2 * b) <= 2)      return 'near-doubles';
+                return 'recall';
+            }
+        }
+
+        function buildSingleFacts() {
+            const facts = [];
+            for (let a = 1; a <= 9; a++) {
+                for (let b = 1; b <= a; b++) {
+                    const strategy = classifySingle(a, b, '+');
+                    facts.push({ a, b, op: '+', answer: a + b, strategy });
+                    if (a !== b) facts.push({ a: b, b: a, op: '+', answer: a + b, strategy });
+                }
+            }
+            for (let a = 2; a <= 18; a++) {
+                for (let b = 1; b < a; b++) {
+                    if (b > 9 || (a - b) < 1 || (a - b) > 9) continue;
+                    const strategy = classifySingle(a, b, '-');
+                    facts.push({ a, b, op: '-', answer: a - b, strategy });
+                }
+            }
+            return facts;
+        }
+
+        function buildAllFacts() {
+            const facts = [];
+
+            [
+                [247, 121], [134, 253], [312, 465], [523, 241], [143, 325],
+                [231, 546], [412, 253], [321, 164], [461, 238], [143, 325],
+                [43, 25],   [67, 31],   [82, 15],   [54, 23],   [74, 25],
+            ].forEach(([a, b]) => facts.push({ a, b, op: '+', answer: a + b, strategy: 'partitioning' }));
+
+            [
+                [134, 29],  [256, 49],  [367, 19],  [145, 39],  [423, 99],
+                [63, 29],   [47, 19],   [85, 38],   [124, 49],  [236, 99],
+                [345, 29],  [167, 19],  [243, 49],  [312, 98],  [156, 39],
+            ].forEach(([a, b]) => facts.push({ a, b, op: '+', answer: a + b, strategy: 'compensating' }));
+
+            [
+                [35, 37],   [64, 66],   [123, 127], [245, 249], [43, 45],
+                [78, 80],   [151, 155], [96, 98],   [212, 214], [167, 171],
+                [48, 52],   [99, 101],  [148, 152], [223, 227], [74, 76],
+            ].forEach(([a, b]) => facts.push({ a, b, op: '+', answer: a + b, strategy: 'doubling' }));
+
+            [
+                [85, 22],   [349, 125], [567, 241], [76, 34],   [98, 45],
+                [467, 234], [789, 356], [654, 321], [87, 43],   [96, 52],
+                [579, 246], [348, 215], [965, 432], [74, 31],   [89, 57],
+            ].forEach(([a, b]) => facts.push({ a, b, op: '-', answer: a - b, strategy: 'partitioning' }));
+
+            [
+                [322, 39],  [145, 29],  [256, 19],  [134, 48],  [83, 29],
+                [67, 19],   [92, 38],   [214, 99],  [363, 49],  [452, 199],
+                [176, 29],  [345, 38],  [423, 99],  [265, 49],  [183, 29],
+            ].forEach(([a, b]) => facts.push({ a, b, op: '-', answer: a - b, strategy: 'compensating' }));
+
+            [
+                [240, 123], [180, 91],  [360, 182], [500, 251], [80, 41],
+                [120, 62],  [200, 101], [300, 152], [160, 79],  [400, 203],
+                [280, 141], [140, 69],  [320, 163], [600, 301], [440, 221],
+            ].forEach(([a, b]) => facts.push({ a, b, op: '-', answer: a - b, strategy: 'halving' }));
+
+            return facts;
+        }
+
+        // ── STRATEGY STEP BUILDER ──────────────────────────────────────────────
+
+        function placeValues(n) {
+            return {
+                h: Math.floor(n / 100) * 100,
+                t: Math.floor((n % 100) / 10) * 10,
+                o: n % 10
+            };
+        }
+
+        function buildMCContent(fact) {
+            const { a, b, op, answer, strategy } = fact;
+            const strategyName = {
+                'doubles':       'Doubles',
+                'bonds':         'Bonds to 10',
+                'near-doubles':  'Near Doubles',
+                'recall':        'Recall',
+                'partitioning':  'Partitioning',
+                'compensating':  'Compensating',
+                'doubling':      'Doubling',
+                'halving':       'Halving'
+            }[strategy] || strategy;
+
+            let rows = [];
+
+            if (strategy === 'doubles' && op === '+') {
+                rows.push(`${a} + ${b}`);
+                rows.push(`→ 2 × ${a}`);
+
+            } else if (strategy === 'doubles' && op === '-') {
+                rows.push(`${a} − ${b}`);
+                rows.push(`${a} = 2 × ${b}`);
+                rows.push(`→ half of ${a}`);
+
+            } else if (strategy === 'bonds' && op === '+') {
+                rows.push(`${a} + ${b}`);
+                rows.push(`→ bond to 10`);
+
+            } else if (strategy === 'bonds' && op === '-') {
+                rows.push(`${a} − ${b}`);
+                rows.push(`${b} + ? = ${a}`);
+
+            } else if (strategy === 'near-doubles' && op === '+') {
+                const smaller = Math.min(a, b);
+                const diff = a + b - 2 * smaller;
+                rows.push(`${a} + ${b}`);
+                rows.push(`→ 2 × ${smaller} + ${diff}`);
+                rows.push(`= ${2 * smaller} + ${diff}`);
+
+            } else if (strategy === 'near-doubles' && op === '-') {
+                const half = Math.floor(a / 2);
+                const rem = a - 2 * half;
+                rows.push(`${a} − ${b}`);
+                rows.push(`${a} ≈ 2 × ${half}${rem > 0 ? ' + ' + rem : ''}`);
+                rows.push(`${b} ≈ ${half}`);
+
+            } else if (strategy === 'recall') {
+                rows.push(`${a} ${op === '+' ? '+' : '−'} ${b}`);
+                rows.push(`→ commit to memory`);
+                if (op === '-') rows.push(`${b} + ${answer} = ${a}`);
+
+            } else if (strategy === 'partitioning' && op === '+') {
+                const pA = placeValues(a), pB = placeValues(b);
+                const breaks = [], sums = [];
+                if (pA.h > 0 || pB.h > 0) { breaks.push(`(${pA.h} + ${pB.h})`); sums.push(pA.h + pB.h); }
+                if (pA.t > 0 || pB.t > 0) { breaks.push(`(${pA.t} + ${pB.t})`); sums.push(pA.t + pB.t); }
+                breaks.push(`(${pA.o} + ${pB.o})`); sums.push(pA.o + pB.o);
+                rows.push(`${a} + ${b}`);
+                rows.push(`= ${breaks.join(' + ')}`);
+                rows.push(`= ${sums.join(' + ')}`);
+
+            } else if (strategy === 'partitioning' && op === '-') {
+                const pA = placeValues(a), pB = placeValues(b);
+                const breaks = [], diffs = [];
+                if (pA.h > 0 || pB.h > 0) { breaks.push(`(${pA.h} − ${pB.h})`); diffs.push(pA.h - pB.h); }
+                if (pA.t > 0 || pB.t > 0) { breaks.push(`(${pA.t} − ${pB.t})`); diffs.push(pA.t - pB.t); }
+                breaks.push(`(${pA.o} − ${pB.o})`); diffs.push(pA.o - pB.o);
+                rows.push(`${a} − ${b}`);
+                rows.push(`= ${breaks.join(' + ')}`);
+                rows.push(`= ${diffs.join(' + ')}`);
+
+            } else if (strategy === 'compensating' && op === '+') {
+                const roundUp = Math.ceil(b / 10) * 10;
+                const diff = roundUp - b;
+                rows.push(`${a} + ${b}`);
+                rows.push(`→ ${a} + ${roundUp} − ${diff}`);
+                rows.push(`= ${a + roundUp} − ${diff}`);
+
+            } else if (strategy === 'compensating' && op === '-') {
+                const roundUp = Math.ceil(b / 10) * 10;
+                const diff = roundUp - b;
+                rows.push(`${a} − ${b}`);
+                rows.push(`→ ${a} − ${roundUp} + ${diff}`);
+                rows.push(`= ${a - roundUp} + ${diff}`);
+
+            } else if (strategy === 'doubling') {
+                const smaller = Math.min(a, b);
+                const diff = (a + b) - 2 * smaller;
+                rows.push(`${a} + ${b}`);
+                if (diff === 0) {
+                    rows.push(`→ 2 × ${smaller}`);
+                } else {
+                    rows.push(`→ 2 × ${smaller} + ${diff}`);
+                    rows.push(`= ${2 * smaller} + ${diff}`);
+                }
+
+            } else if (strategy === 'halving') {
+                const half = a / 2;
+                const delta = b - half;
+                rows.push(`${a} − ${b}`);
+                rows.push(`${a} ÷ 2 = ${half}`);
+                if (delta > 0) {
+                    rows.push(`${b} = ${half} + ${delta}`);
+                    rows.push(`→ ${half} − ${delta}`);
+                } else if (delta < 0) {
+                    rows.push(`${b} = ${half} − ${Math.abs(delta)}`);
+                    rows.push(`→ ${half} + ${Math.abs(delta)}`);
+                }
+            }
+
+            const stepsHTML = rows.map(r => `<div class="mc-step">${r}</div>`).join('');
+            return `<div class="mc-strategy-label">${strategyName}</div>
+                    <hr class="mc-fact-divider">
+                    ${stepsHTML}
+                    <div class="mc-step answer">= <strong>${answer}</strong></div>`;
+        }
+
+        // ── HINT TEXT ──────────────────────────────────────────────────────────
+
+        function getHintText(fact) {
+            const { a, b, op, strategy } = fact;
+            switch (strategy) {
+                case 'doubles':
+                    return op === '+' ? `Double ${a}` : `Half of ${a}`;
+                case 'bonds':
+                    return op === '+' ? `${a} and ${b} make 10` : `${b} + ? = ${a}`;
+                case 'near-doubles': {
+                    const smaller = op === '+' ? Math.min(a, b) : Math.floor(a / 2);
+                    const diff = op === '+' ? (a + b - 2 * smaller) : (a - 2 * smaller);
+                    return op === '+'
+                        ? `Near double: 2 × ${smaller} + ${diff}`
+                        : `Near half: ${a} ÷ 2 ≈ ${smaller}`;
+                }
+                case 'recall':
+                    return op === '+' ? `${a} + ${b} — know it cold` : `${b} + ? = ${a}`;
+                case 'partitioning':
+                    return `Partition: split each number into place values`;
+                case 'compensating': {
+                    const roundUp = Math.ceil(b / 10) * 10;
+                    const diff = roundUp - b;
+                    return op === '+'
+                        ? `Round ${b} → ${roundUp}, then subtract ${diff}`
+                        : `Round ${b} → ${roundUp}, then add back ${diff}`;
+                }
+                case 'doubling': {
+                    const smaller = Math.min(a, b);
+                    const diff = (a + b) - 2 * smaller;
+                    return diff === 0 ? `Double ${smaller}` : `Double ${smaller}, then add ${diff}`;
+                }
+                case 'halving': {
+                    const half = a / 2;
+                    const delta = b - half;
+                    return `${a} ÷ 2 = ${half} — ${b} is ${half} ${delta >= 0 ? '+' : '−'} ${Math.abs(delta)}`;
+                }
+            }
+            return '';
+        }
+
+        // ── FLOW ───────────────────────────────────────────────────────────────
+
+        function setMode(mode) {
+            currentMode = mode;
+            document.querySelectorAll('.sub-btn').forEach(btn =>
+                btn.classList.toggle('active', btn.dataset.mode === mode)
+            );
+            const q = { singles: '? + ?', add: '? + ?', sub: '? − ?', mix: '? + ?' };
+            document.getElementById('question').textContent = q[mode] || '? + ?';
+            startFresh();
+        }
+
+        function startFresh() {
+            drillStart = Date.now();
+            let pool;
+            if (currentMode === 'singles') {
+                pool = shuffle(buildSingleFacts());
+            } else {
+                const allFacts = buildAllFacts();
+                pool = shuffle(allFacts.filter(f => {
+                    if (currentMode === 'add') return f.op === '+';
+                    if (currentMode === 'sub') return f.op === '-';
+                    return true;
+                }));
+            }
+            queue = [...pool];
+            missed = {}; correct = 0; wrong = 0; streak = 0; doneCount = 0;
+            total = queue.length;
+            document.getElementById('done-screen').classList.remove('visible');
+            updateStats(); nextQ();
+        }
+
+        function drillMissed() {
+            const mf = Object.keys(missed).map(k => missed[k].fact);
+            if (!mf.length) return;
+            drillStart = Date.now();
+            queue = shuffle([...mf, ...mf]);
+            missed = {}; correct = 0; wrong = 0; streak = 0; doneCount = 0;
+            total = queue.length;
+            document.getElementById('done-screen').classList.remove('visible');
+            updateStats(); nextQ();
+        }
+
+        function nextQ() {
+            clearMC();
+            if (!queue.length) { showDone(); return; }
+            current = queue.pop();
+            const opSym = current.op === '+' ? '+' : '−';
+            document.getElementById('question').textContent = `${current.a} ${opSym} ${current.b}`;
+            document.getElementById('feedback').textContent = '';
+            document.getElementById('feedback').className = '';
+            const inp = document.getElementById('answer-input');
+            inp.value = ''; inp.className = ''; inp.focus();
+            updateProgress(); startMCTimer();
+        }
+
+        function clearMC() {
+            _clearTimer();
+            mcVisible = false;
+            document.getElementById('mc-overlay').classList.remove('visible');
+            document.getElementById('mc-hint').textContent = '';
+        }
+
+        function dismissMC() {
+            if (!mcVisible) return;
+            mcVisible = false;
+            document.getElementById('mc-overlay').classList.remove('visible');
+            document.getElementById('answer-input').focus();
+        }
+
+        function showMC() {
+            if (!current) return;
+            const opSym = current.op === '+' ? '+' : '−';
+            const label = mcDur > 2500
+                ? `yeah — ${current.a} ${opSym} ${current.b}`
+                : `hint — ${current.a} ${opSym} ${current.b}`;
+            document.getElementById('mc-label').textContent = label;
+            document.getElementById('mc-content').innerHTML = buildMCContent(current);
+            document.getElementById('mc-hint').textContent = '';
+            mcVisible = true;
+            document.getElementById('mc-overlay').classList.add('visible');
+            document.getElementById('answer-input').focus();
+        }
+
+        function submit() {
+            if (!current) return;
+            if (mcVisible) { dismissMC(); return; }
+            clearMC();
+            const inp = document.getElementById('answer-input');
+            const val = parseInt(inp.value);
+            if (isNaN(val)) return;
+            const ans = current.answer;
+            const key = `${current.a}${current.op}${current.b}`;
+
+            if (val === ans) {
+                inp.className = 'correct';
+                document.getElementById('feedback').textContent = streak >= 4 ? `${streak + 1} in a row` : 'Correct';
+                document.getElementById('feedback').className = 'correct';
+                correct++; streak++; doneCount++;
+                if (missed[key]) { missed[key].count--; if (missed[key].count <= 0) delete missed[key]; }
+                updateStats();
+                setTimeout(nextQ, 600);
+            } else {
+                inp.className = 'wrong';
+                document.getElementById('feedback').textContent = '';
+                document.getElementById('feedback').className = 'wrong';
+                wrong++; streak = 0;
+                if (!missed[key]) missed[key] = { fact: current, count: 0 };
+                missed[key].count++;
+                queue.unshift(current);
+                updateStats();
+                showMC();
+                setTimeout(() => {
+                    inp.value = ''; inp.className = '';
+                    document.getElementById('feedback').textContent = '';
+                    document.getElementById('feedback').className = '';
+                }, 500);
+            }
+        }
+
+        function showDone() {
+            clearMC();
+            const elapsed = drillStart ? Date.now() - drillStart : 0;
+            const timeStr = fmtDrillTime(elapsed);
+            const t = correct + wrong;
+            const pct = t > 0 ? Math.round((correct / t) * 100) : 0;
+            document.getElementById('done-title').textContent = pct >= 90 ? 'Excellent.' : pct >= 70 ? 'Good progress.' : 'Keep going.';
+            document.getElementById('done-sub').textContent = `${correct} correct, ${wrong} missed — ${pct}%`;
+            document.getElementById('done-time').textContent = timeStr;
+            document.getElementById('missed-btn').style.display = Object.keys(missed).length ? 'block' : 'none';
+            const hist = saveDrillResult('history_addsub_' + currentMode, pct, timeStr, 'Full');
+            document.getElementById('done-history').innerHTML = renderDrillHistory(hist);
+            document.getElementById('done-screen').classList.add('visible');
+        }
+
+        // ── EVENT LISTENERS ────────────────────────────────────────────────────
+
+        document.getElementById('answer-input').addEventListener('keydown', e => { if (e.key === 'Enter') submit(); });
+        document.addEventListener('keydown', e => { if (e.key === 'Enter') return; if (mcVisible) dismissMC(); });
+        document.getElementById('mc-overlay').addEventListener('click', dismissMC);
+        document.getElementById('submit-btn').addEventListener('click', submit);
+        document.getElementById('restart-btn').addEventListener('click', startFresh);
+        document.getElementById('missed-btn').addEventListener('click', drillMissed);
+
+        // ── MODE MENU ──────────────────────────────────────────────────────────
+
+        const modeBtn      = document.getElementById('mode-btn');
+        const modeMenu     = document.getElementById('mode-menu');
+        const menuBackdrop = document.getElementById('menu-backdrop');
+
+        function openMenu() {
+            modeMenu.classList.add('open');
+            menuBackdrop.classList.add('open');
+        }
+
+        function closeMenu() {
+            modeMenu.classList.remove('open');
+            menuBackdrop.classList.remove('open');
+            document.getElementById('answer-input').focus();
+        }
+
+        modeBtn.addEventListener('click', () => {
+            modeMenu.classList.contains('open') ? closeMenu() : openMenu();
+        });
+        menuBackdrop.addEventListener('click', closeMenu);
+
+        // ── VISUAL VIEWPORT LAYOUT ─────────────────────────────────────────────
+
+        function fitLayout() {
+            const vv  = window.visualViewport;
+            const kbH = vv ? Math.max(0, window.innerHeight - vv.height - vv.offsetTop) : 0;
+
+            const inputRow  = document.getElementById('input-row');
+            const qArea     = document.getElementById('question-area');
+            const mcOverlay = document.getElementById('mc-overlay');
+            const inputH    = inputRow.offsetHeight || 76;
+            const clampBot  = kbH + inputH;
+
+            inputRow.style.bottom  = kbH + 'px';
+            qArea.style.bottom     = clampBot + 'px';
+            mcOverlay.style.bottom = clampBot + 'px';
+        }
+
+        if (window.visualViewport) {
+            window.visualViewport.addEventListener('resize', fitLayout);
+            window.visualViewport.addEventListener('scroll', fitLayout);
+        }
+        fitLayout();
+
+        startFresh();
+    </script>
+</body>
+</html>
