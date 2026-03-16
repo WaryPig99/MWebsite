@@ -1,17 +1,42 @@
-﻿<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://positiveattempt.github.io/MWebsite/</loc>
+    <loc>https://positiveattempt.github.io/times-tables/</loc>
     <lastmod>2026-03-16</lastmod>
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://positiveattempt.github.io/MWebsite/division.html</loc>
+    <loc>https://positiveattempt.github.io/times-tables/mobile.html</loc>
+    <lastmod>2026-03-16</lastmod>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://positiveattempt.github.io/times-tables/division.html</loc>
     <lastmod>2026-03-16</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://positiveattempt.github.io/MWebsite/fractions.html</loc>
+    <loc>https://positiveattempt.github.io/times-tables/division-mobile.html</loc>
+    <lastmod>2026-03-16</lastmod>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://positiveattempt.github.io/times-tables/fractions.html</loc>
+    <lastmod>2026-03-16</lastmod>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://positiveattempt.github.io/times-tables/fractions-mobile.html</loc>
+    <lastmod>2026-03-16</lastmod>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://positiveattempt.github.io/times-tables/addsubtract.html</loc>
+    <lastmod>2026-03-16</lastmod>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://positiveattempt.github.io/times-tables/addsubtract-mobile.html</loc>
     <lastmod>2026-03-16</lastmod>
     <priority>0.8</priority>
   </url>

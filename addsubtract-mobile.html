@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, interactive-widget=resizes-visual">
-    <title>Times Tables — Fractions</title>
+    <title>Times Tables — Add &amp; Subtract</title>
     <script>try{if(localStorage.getItem('dark')==='1')document.documentElement.classList.add('dark');}catch(e){}</script>
     <link rel="stylesheet" href="shared.css">
     <style>
@@ -133,7 +133,7 @@
         html.dark .mode-sym { color: #3d4148; }
         html.dark .mode-item.current .mode-sym { color: #faf9f7; }
 
-        /* ── SUB-MODE ROW ────────────────────────────────────────────────── */
+        /* ── SUB-MODE ROW ─────────────────────────────────────────────────── */
         #sub-mode-row {
             position: fixed; top: 44px; left: 0; right: 0;
             height: 32px; display: flex; align-items: center; justify-content: center;
@@ -141,7 +141,6 @@
             border-bottom: 0.5px solid #e0ddd8; z-index: 10;
         }
         html.dark #sub-mode-row { background: #0d0f12; border-bottom-color: #252830; }
-
         .sub-btn {
             font-family: 'EB Garamond', serif; font-size: 11px;
             letter-spacing: .14em; text-transform: uppercase; color: #aaa69e;
@@ -184,9 +183,9 @@
 
         #question {
             font-family: 'Libre Baskerville', serif;
-            font-size: 80px;
+            font-size: 52px;
             font-weight: 700;
-            letter-spacing: -2px;
+            letter-spacing: -0.5px;
             line-height: 1;
             text-align: center;
             color: #1a1916;
@@ -214,42 +213,35 @@
             padding: 10px 14px 12px;
             display: flex;
             gap: 8px;
-            align-items: center;
             background: #faf9f7;
             border-top: 0.5px solid #e0ddd8;
             z-index: 20;
         }
         html.dark #input-row { background: #0d0f12; border-top-color: #252830; }
 
-        /* ── FRACTION INPUTS ─────────────────────────────────────────────── */
-        .frac-inp {
+        #answer-input {
             flex: 1;
             min-width: 0;
             border: 0.5px solid #c8c4bc;
             border-radius: 2px;
             background: #fff;
             font-family: 'Libre Baskerville', serif;
-            font-size: 26px;
+            font-size: 30px;
             font-weight: 700;
             text-align: center;
             color: #1a1916;
-            padding: 12px 4px;
+            padding: 13px 8px;
             outline: none;
             -webkit-appearance: none;
             transition: border-color .15s;
         }
-        .frac-inp.correct { border-color: #3a7d5e; color: #3a7d5e; }
-        .frac-inp.wrong   { border-color: #b84040; color: #b84040; }
-        html.dark .frac-inp { background: #13161a; border-color: #252830; color: #faf9f7; }
-
-        #input-sep {
-            font-family: 'Libre Baskerville', serif;
-            font-size: 26px;
-            font-weight: 700;
-            color: #c8c4bc;
-            flex-shrink: 0;
-        }
-        html.dark #input-sep { color: #3d4148; }
+        #answer-input:focus    { border-color: #1a1916; }
+        #answer-input.correct  { border-color: #3a7d5e; color: #3a7d5e; }
+        #answer-input.wrong    { border-color: #b84040; color: #b84040; }
+        html.dark #answer-input            { background: #13161a; border-color: #252830; color: #faf9f7; }
+        html.dark #answer-input:focus      { border-color: #c8c4bc; }
+        html.dark #answer-input.correct    { border-color: #3a7d5e; color: #3a7d5e; }
+        html.dark #answer-input.wrong      { border-color: #b84040; color: #b84040; }
 
         #submit-btn {
             flex-shrink: 0;
@@ -261,7 +253,6 @@
             font-family: 'Cormorant Garamond', serif;
             font-size: 24px;
             cursor: pointer;
-            align-self: stretch;
         }
         #submit-btn:active { opacity: .7; }
         html.dark #submit-btn { background: #c8c4bc; color: #0d0f12; }
@@ -292,41 +283,24 @@
         html.dark #mc-label { color: #6a6660; }
 
         #mc-content {
-            font-family: 'Libre Baskerville', serif;
-            text-align: center;
-            padding: 1rem 1.5rem;
-            border: 0.5px solid #c8c4bc;
-            border-radius: 2px;
-            background: #fff;
-            min-width: 160px;
-            max-height: calc(100% - 80px);
-            overflow-y: auto;
+            font-family: 'Libre Baskerville', serif; text-align: center;
+            padding: 1.2rem 2rem; border: 0.5px solid #c8c4bc; border-radius: 2px;
+            background: #fff; min-width: 200px; max-height: calc(100% - 80px); overflow-y: auto;
         }
         html.dark #mc-content { background: #13161a; border-color: #252830; }
-
-        .mc-fact-row {
-            font-size: 15px;
-            color: #1a1916;
-            margin: 3px 0;
+        .mc-strategy-label {
+            font-family: 'EB Garamond', serif; font-size: 11px; text-transform: uppercase;
+            letter-spacing: .12em; color: #aaa69e; margin-bottom: 8px;
         }
-        .mc-fact-row strong { font-weight: 700; }
-        html.dark .mc-fact-row { color: #c8c4bc; }
-        html.dark .mc-fact-row strong { color: #faf9f7; }
-
-        .mc-fact-divider {
-            border: none;
-            border-top: 0.5px solid #c8c4bc;
-            margin: 6px auto;
-            width: 50px;
-        }
+        html.dark .mc-strategy-label { color: #6a6660; }
+        .mc-step { font-size: 16px; color: #1a1916; margin: 5px 0; letter-spacing: -0.3px; }
+        .mc-step strong { font-weight: 700; }
+        .mc-step.answer { font-size: 26px; font-weight: 700; margin-top: 6px; }
+        html.dark .mc-step { color: #c8c4bc; }
+        html.dark .mc-step strong { color: #faf9f7; }
+        html.dark .mc-step.answer { color: #faf9f7; }
+        .mc-fact-divider { border: none; border-top: 0.5px solid #c8c4bc; margin: 8px auto; width: 60px; }
         html.dark .mc-fact-divider { border-top-color: #252830; }
-
-        .mc-fact-answer {
-            font-size: 19px;
-            font-weight: 700;
-            margin-top: 4px;
-        }
-        html.dark .mc-fact-answer { color: #faf9f7; }
 
         #mc-hint {
             margin-top: 10px;
@@ -418,17 +392,18 @@
     <!-- MODE DROPDOWN -->
     <div id="menu-backdrop"></div>
     <nav id="mode-menu" role="menu">
-        <a href="mobile.html"           class="mode-item"         role="menuitem"><span class="mode-sym">×</span>Multiply</a>
-        <a href="division-mobile.html"  class="mode-item"         role="menuitem"><span class="mode-sym">÷</span>Division</a>
-        <a href="addsubtract-mobile.html" class="mode-item"       role="menuitem"><span class="mode-sym">+</span>Add / Sub</a>
-        <a href="fractions-mobile.html" class="mode-item current" role="menuitem"><span class="mode-sym">½</span>Fractions</a>
+        <a href="mobile.html"              class="mode-item"         role="menuitem"><span class="mode-sym">×</span>Multiply</a>
+        <a href="division-mobile.html"     class="mode-item"         role="menuitem"><span class="mode-sym">÷</span>Division</a>
+        <a href="addsubtract-mobile.html"  class="mode-item current" role="menuitem"><span class="mode-sym">+</span>Add / Sub</a>
+        <a href="fractions-mobile.html"    class="mode-item"         role="menuitem"><span class="mode-sym">½</span>Fractions</a>
     </nav>
 
     <!-- SUB-MODE ROW -->
     <div id="sub-mode-row">
-        <button class="sub-btn active" data-mode="simplify" onclick="setMode('simplify')">Simplify</button>
-        <button class="sub-btn"        data-mode="ratio"    onclick="setMode('ratio')">Ratio</button>
-        <button class="sub-btn"        data-mode="decimal"  onclick="setMode('decimal')">Decimal</button>
+        <button class="sub-btn active" data-mode="singles" onclick="setMode('singles')">1-digit</button>
+        <button class="sub-btn" data-mode="add" onclick="setMode('add')">+ Add</button>
+        <button class="sub-btn" data-mode="sub" onclick="setMode('sub')">− Sub</button>
+        <button class="sub-btn" data-mode="mix" onclick="setMode('mix')">± Mix</button>
     </div>
 
     <!-- PROGRESS HAIRLINE -->
@@ -436,15 +411,13 @@
 
     <!-- QUESTION AREA -->
     <div id="question-area">
-        <div id="question">?/?</div>
+        <div id="question">? + ?</div>
         <div id="feedback"></div>
     </div>
 
     <!-- INPUT ROW -->
     <div id="input-row">
-        <input class="frac-inp" id="answer-num" type="number" inputmode="numeric" placeholder="—" autocomplete="off">
-        <div id="input-sep">/</div>
-        <input class="frac-inp" id="answer-den" type="number" inputmode="numeric" placeholder="—" autocomplete="off">
+        <input id="answer-input" type="number" inputmode="numeric" placeholder="—" autocomplete="off">
         <button id="submit-btn">→</button>
     </div>
 
@@ -455,7 +428,7 @@
     <span id="s-wrong"   style="display:none">0</span>
     <span id="s-streak"  style="display:none">0</span>
 
-    <!-- MORON CHECKER OVERLAY -->
+    <!-- MC OVERLAY -->
     <div id="mc-overlay" tabindex="-1">
         <div id="mc-label"></div>
         <div id="mc-content"></div>
@@ -475,122 +448,285 @@
 
     <script src="shared.js"></script>
     <script>
-        // ── DRILL LOGIC ────────────────────────────────────────────────────────
-
-        let currentMode = 'simplify';
-        let queue = [], missed = {};
-        let correct = 0, wrong = 0, streak = 0, current = null, total = 0, doneCount = 0;
+        // ── STATE ──────────────────────────────────────────────────────────────
+        let currentMode = 'singles';
+        let queue = [], missed = {}, correct = 0, wrong = 0, streak = 0, current = null, total = 0, doneCount = 0;
         let drillStart = null;
         let mcVisible = false;
 
-        function gcd(a, b) { return b === 0 ? a : gcd(b, a % b); }
+        // ── FACT POOL ──────────────────────────────────────────────────────────
 
-        function buildFacts() {
-            if (currentMode === 'decimal') return buildDecimalFacts();
+        function classifySingle(a, b, op) {
+            if (op === '+') {
+                if (a === b)                        return 'doubles';
+                if (a + b === 10)                   return 'bonds';
+                if (Math.abs(a - b) <= 2)           return 'near-doubles';
+                return 'recall';
+            } else {
+                if (b === a / 2 && a % 2 === 0)    return 'doubles';
+                if (b + a === 10 || a === 10)       return 'bonds';
+                if (Math.abs(a - 2 * b) <= 2)      return 'near-doubles';
+                return 'recall';
+            }
+        }
+
+        function buildSingleFacts() {
             const facts = [];
-            for (let a = 1; a <= 12; a++) {
-                for (let b = 2; b <= 12; b++) {
-                    if (a >= b || gcd(a, b) !== 1) continue;
-                    for (let k = 2; k <= 12; k++) {
-                        const num = a * k, den = b * k;
-                        if (num > 99 || den > 99) continue;
-                        facts.push({ num, den, rNum: a, rDen: b, factor: k });
-                    }
+            for (let a = 1; a <= 9; a++) {
+                for (let b = 1; b <= a; b++) {
+                    const strategy = classifySingle(a, b, '+');
+                    facts.push({ a, b, op: '+', answer: a + b, strategy });
+                    if (a !== b) facts.push({ a: b, b: a, op: '+', answer: a + b, strategy });
+                }
+            }
+            for (let a = 2; a <= 18; a++) {
+                for (let b = 1; b < a; b++) {
+                    if (b > 9 || (a - b) < 1 || (a - b) > 9) continue;
+                    const strategy = classifySingle(a, b, '-');
+                    facts.push({ a, b, op: '-', answer: a - b, strategy });
                 }
             }
             return facts;
         }
 
-        function buildDecimalFacts() {
-            const termDens = [2, 4, 5, 8, 10];
+        function buildAllFacts() {
             const facts = [];
-            for (let a = 1; a <= 11; a++) {
-                for (const b of termDens) {
-                    if (a >= b || gcd(a, b) !== 1) continue;
-                    facts.push({ num: a, den: b, rNum: a, rDen: b, factor: 1 });
-                }
-            }
+
+            [
+                [247, 121], [134, 253], [312, 465], [523, 241], [143, 325],
+                [231, 546], [412, 253], [321, 164], [461, 238], [143, 325],
+                [43, 25],   [67, 31],   [82, 15],   [54, 23],   [74, 25],
+            ].forEach(([a, b]) => facts.push({ a, b, op: '+', answer: a + b, strategy: 'partitioning' }));
+
+            [
+                [134, 29],  [256, 49],  [367, 19],  [145, 39],  [423, 99],
+                [63, 29],   [47, 19],   [85, 38],   [124, 49],  [236, 99],
+                [345, 29],  [167, 19],  [243, 49],  [312, 98],  [156, 39],
+            ].forEach(([a, b]) => facts.push({ a, b, op: '+', answer: a + b, strategy: 'compensating' }));
+
+            [
+                [35, 37],   [64, 66],   [123, 127], [245, 249], [43, 45],
+                [78, 80],   [151, 155], [96, 98],   [212, 214], [167, 171],
+                [48, 52],   [99, 101],  [148, 152], [223, 227], [74, 76],
+            ].forEach(([a, b]) => facts.push({ a, b, op: '+', answer: a + b, strategy: 'doubling' }));
+
+            [
+                [85, 22],   [349, 125], [567, 241], [76, 34],   [98, 45],
+                [467, 234], [789, 356], [654, 321], [87, 43],   [96, 52],
+                [579, 246], [348, 215], [965, 432], [74, 31],   [89, 57],
+            ].forEach(([a, b]) => facts.push({ a, b, op: '-', answer: a - b, strategy: 'partitioning' }));
+
+            [
+                [322, 39],  [145, 29],  [256, 19],  [134, 48],  [83, 29],
+                [67, 19],   [92, 38],   [214, 99],  [363, 49],  [452, 199],
+                [176, 29],  [345, 38],  [423, 99],  [265, 49],  [183, 29],
+            ].forEach(([a, b]) => facts.push({ a, b, op: '-', answer: a - b, strategy: 'compensating' }));
+
+            [
+                [240, 123], [180, 91],  [360, 182], [500, 251], [80, 41],
+                [120, 62],  [200, 101], [300, 152], [160, 79],  [400, 203],
+                [280, 141], [140, 69],  [320, 163], [600, 301], [440, 221],
+            ].forEach(([a, b]) => facts.push({ a, b, op: '-', answer: a - b, strategy: 'halving' }));
+
             return facts;
         }
 
-        function getSep() { return currentMode === 'ratio' ? ':' : '/'; }
+        // ── STRATEGY STEP BUILDER ──────────────────────────────────────────────
 
-        function formatQuestion(fact) {
-            if (currentMode === 'simplify') return `${fact.num}/${fact.den}`;
-            if (currentMode === 'ratio') return `${fact.num}:${fact.den}`;
-            return String(parseFloat((fact.rNum / fact.rDen).toFixed(10)));
-        }
-
-        function formatAnswer(fact) {
-            return `${fact.rNum}${getSep()}${fact.rDen}`;
+        function placeValues(n) {
+            return {
+                h: Math.floor(n / 100) * 100,
+                t: Math.floor((n % 100) / 10) * 10,
+                o: n % 10
+            };
         }
 
         function buildMCContent(fact) {
-            const sep = getSep();
-            const visual = currentMode === 'ratio'
-                ? buildBarSVG(fact.rNum, fact.rDen)
-                : buildPieSVG(fact.rNum, fact.rDen);
-            if (currentMode === 'decimal') {
-                const dec = String(parseFloat((fact.rNum / fact.rDen).toFixed(10)));
-                const decStr = dec.split('.')[1] || '';
-                const mult = Math.pow(10, decStr.length);
-                const bigNum = Math.round(fact.rNum * mult / fact.rDen);
-                const div = gcd(bigNum, mult);
-                return `<div class="mc-fact-row">${dec} = ${bigNum}/${mult}</div>
-                        <div class="mc-fact-row">÷ ${div}</div>
-                        <hr class="mc-fact-divider">
-                        <div class="mc-fact-row mc-fact-answer">${fact.rNum}/${fact.rDen}</div>
-                        ${visual}`;
+            const { a, b, op, answer, strategy } = fact;
+            const strategyName = {
+                'doubles':       'Doubles',
+                'bonds':         'Bonds to 10',
+                'near-doubles':  'Near Doubles',
+                'recall':        'Recall',
+                'partitioning':  'Partitioning',
+                'compensating':  'Compensating',
+                'doubling':      'Doubling',
+                'halving':       'Halving'
+            }[strategy] || strategy;
+
+            let rows = [];
+
+            if (strategy === 'doubles' && op === '+') {
+                rows.push(`${a} + ${b}`);
+                rows.push(`→ 2 × ${a}`);
+
+            } else if (strategy === 'doubles' && op === '-') {
+                rows.push(`${a} − ${b}`);
+                rows.push(`${a} = 2 × ${b}`);
+                rows.push(`→ half of ${a}`);
+
+            } else if (strategy === 'bonds' && op === '+') {
+                rows.push(`${a} + ${b}`);
+                rows.push(`→ bond to 10`);
+
+            } else if (strategy === 'bonds' && op === '-') {
+                rows.push(`${a} − ${b}`);
+                rows.push(`${b} + ? = ${a}`);
+
+            } else if (strategy === 'near-doubles' && op === '+') {
+                const smaller = Math.min(a, b);
+                const diff = a + b - 2 * smaller;
+                rows.push(`${a} + ${b}`);
+                rows.push(`→ 2 × ${smaller} + ${diff}`);
+                rows.push(`= ${2 * smaller} + ${diff}`);
+
+            } else if (strategy === 'near-doubles' && op === '-') {
+                const half = Math.floor(a / 2);
+                const rem = a - 2 * half;
+                rows.push(`${a} − ${b}`);
+                rows.push(`${a} ≈ 2 × ${half}${rem > 0 ? ' + ' + rem : ''}`);
+                rows.push(`${b} ≈ ${half}`);
+
+            } else if (strategy === 'recall') {
+                rows.push(`${a} ${op === '+' ? '+' : '−'} ${b}`);
+                rows.push(`→ commit to memory`);
+                if (op === '-') rows.push(`${b} + ${answer} = ${a}`);
+
+            } else if (strategy === 'partitioning' && op === '+') {
+                const pA = placeValues(a), pB = placeValues(b);
+                const breaks = [], sums = [];
+                if (pA.h > 0 || pB.h > 0) { breaks.push(`(${pA.h} + ${pB.h})`); sums.push(pA.h + pB.h); }
+                if (pA.t > 0 || pB.t > 0) { breaks.push(`(${pA.t} + ${pB.t})`); sums.push(pA.t + pB.t); }
+                breaks.push(`(${pA.o} + ${pB.o})`); sums.push(pA.o + pB.o);
+                rows.push(`${a} + ${b}`);
+                rows.push(`= ${breaks.join(' + ')}`);
+                rows.push(`= ${sums.join(' + ')}`);
+
+            } else if (strategy === 'partitioning' && op === '-') {
+                const pA = placeValues(a), pB = placeValues(b);
+                const breaks = [], diffs = [];
+                if (pA.h > 0 || pB.h > 0) { breaks.push(`(${pA.h} − ${pB.h})`); diffs.push(pA.h - pB.h); }
+                if (pA.t > 0 || pB.t > 0) { breaks.push(`(${pA.t} − ${pB.t})`); diffs.push(pA.t - pB.t); }
+                breaks.push(`(${pA.o} − ${pB.o})`); diffs.push(pA.o - pB.o);
+                rows.push(`${a} − ${b}`);
+                rows.push(`= ${breaks.join(' + ')}`);
+                rows.push(`= ${diffs.join(' + ')}`);
+
+            } else if (strategy === 'compensating' && op === '+') {
+                const roundUp = Math.ceil(b / 10) * 10;
+                const diff = roundUp - b;
+                rows.push(`${a} + ${b}`);
+                rows.push(`→ ${a} + ${roundUp} − ${diff}`);
+                rows.push(`= ${a + roundUp} − ${diff}`);
+
+            } else if (strategy === 'compensating' && op === '-') {
+                const roundUp = Math.ceil(b / 10) * 10;
+                const diff = roundUp - b;
+                rows.push(`${a} − ${b}`);
+                rows.push(`→ ${a} − ${roundUp} + ${diff}`);
+                rows.push(`= ${a - roundUp} + ${diff}`);
+
+            } else if (strategy === 'doubling') {
+                const smaller = Math.min(a, b);
+                const diff = (a + b) - 2 * smaller;
+                rows.push(`${a} + ${b}`);
+                if (diff === 0) {
+                    rows.push(`→ 2 × ${smaller}`);
+                } else {
+                    rows.push(`→ 2 × ${smaller} + ${diff}`);
+                    rows.push(`= ${2 * smaller} + ${diff}`);
+                }
+
+            } else if (strategy === 'halving') {
+                const half = a / 2;
+                const delta = b - half;
+                rows.push(`${a} − ${b}`);
+                rows.push(`${a} ÷ 2 = ${half}`);
+                if (delta > 0) {
+                    rows.push(`${b} = ${half} + ${delta}`);
+                    rows.push(`→ ${half} − ${delta}`);
+                } else if (delta < 0) {
+                    rows.push(`${b} = ${half} − ${Math.abs(delta)}`);
+                    rows.push(`→ ${half} + ${Math.abs(delta)}`);
+                }
             }
-            return `<div class="mc-fact-row">${fact.num} ÷ ${fact.factor} = <strong>${fact.rNum}</strong></div>
-                    <div class="mc-fact-row">${fact.den} ÷ ${fact.factor} = <strong>${fact.rDen}</strong></div>
+
+            const stepsHTML = rows.map(r => `<div class="mc-step">${r}</div>`).join('');
+            return `<div class="mc-strategy-label">${strategyName}</div>
                     <hr class="mc-fact-divider">
-                    <div class="mc-fact-row mc-fact-answer">${fact.rNum} ${sep} ${fact.rDen}</div>
-                    ${visual}`;
+                    ${stepsHTML}
+                    <div class="mc-step answer">= <strong>${answer}</strong></div>`;
         }
 
-        function buildPieSVG(n, d) {
-            const dark = document.documentElement.classList.contains('dark');
-            const bgFill = dark ? '#1e2228' : '#f5f0e8';
-            const stroke = dark ? '#252830' : '#c8c4bc';
-            const fill = dark ? '#c8c4bc' : '#3a3730';
-            const cx = 36, cy = 36, r = 32;
-            const angle = (n / d) * 2 * Math.PI;
-            let slice;
-            if (n >= d) {
-                slice = `<circle cx="${cx}" cy="${cy}" r="${r}" fill="${fill}"/>`;
-            } else {
-                const ex = cx + r * Math.sin(angle);
-                const ey = cy - r * Math.cos(angle);
-                const largeArc = angle > Math.PI ? 1 : 0;
-                slice = `<path d="M ${cx} ${cy} L ${cx} ${cy - r} A ${r} ${r} 0 ${largeArc} 1 ${ex.toFixed(2)} ${ey.toFixed(2)} Z" fill="${fill}"/>`;
+        // ── HINT TEXT ──────────────────────────────────────────────────────────
+
+        function getHintText(fact) {
+            const { a, b, op, strategy } = fact;
+            switch (strategy) {
+                case 'doubles':
+                    return op === '+' ? `Double ${a}` : `Half of ${a}`;
+                case 'bonds':
+                    return op === '+' ? `${a} and ${b} make 10` : `${b} + ? = ${a}`;
+                case 'near-doubles': {
+                    const smaller = op === '+' ? Math.min(a, b) : Math.floor(a / 2);
+                    const diff = op === '+' ? (a + b - 2 * smaller) : (a - 2 * smaller);
+                    return op === '+'
+                        ? `Near double: 2 × ${smaller} + ${diff}`
+                        : `Near half: ${a} ÷ 2 ≈ ${smaller}`;
+                }
+                case 'recall':
+                    return op === '+' ? `${a} + ${b} — know it cold` : `${b} + ? = ${a}`;
+                case 'partitioning':
+                    return `Partition: split each number into place values`;
+                case 'compensating': {
+                    const roundUp = Math.ceil(b / 10) * 10;
+                    const diff = roundUp - b;
+                    return op === '+'
+                        ? `Round ${b} → ${roundUp}, then subtract ${diff}`
+                        : `Round ${b} → ${roundUp}, then add back ${diff}`;
+                }
+                case 'doubling': {
+                    const smaller = Math.min(a, b);
+                    const diff = (a + b) - 2 * smaller;
+                    return diff === 0 ? `Double ${smaller}` : `Double ${smaller}, then add ${diff}`;
+                }
+                case 'halving': {
+                    const half = a / 2;
+                    const delta = b - half;
+                    return `${a} ÷ 2 = ${half} — ${b} is ${half} ${delta >= 0 ? '+' : '−'} ${Math.abs(delta)}`;
+                }
             }
-            return `<svg width="72" height="72" viewBox="0 0 72 72" style="display:block;margin:10px auto 0"><circle cx="${cx}" cy="${cy}" r="${r}" fill="${bgFill}" stroke="${stroke}" stroke-width="0.5"/>${slice}</svg>`;
+            return '';
         }
 
-        function buildBarSVG(a, b) {
-            const dark = document.documentElement.classList.contains('dark');
-            const fill = dark ? '#c8c4bc' : '#3a3730';
-            const maxH = 60, bw = 18, gap = 8, baseY = 64;
-            const maxVal = Math.max(a, b);
-            const h1 = Math.round((a / maxVal) * maxH);
-            const h2 = Math.round((b / maxVal) * maxH);
-            return `<svg width="52" height="68" viewBox="0 0 52 68" style="display:block;margin:10px auto 0"><rect x="4" y="${baseY - h1}" width="${bw}" height="${h1}" fill="${fill}"/><rect x="${4 + bw + gap}" y="${baseY - h2}" width="${bw}" height="${h2}" fill="${fill}"/></svg>`;
-        }
+        // ── FLOW ───────────────────────────────────────────────────────────────
 
         function setMode(mode) {
             currentMode = mode;
-            document.querySelectorAll('.sub-btn').forEach(b => b.classList.toggle('active', b.dataset.mode === mode));
-            document.getElementById('input-sep').textContent = getSep();
-            document.getElementById('question').textContent = mode === 'decimal' ? '?' : '?/?';
+            document.querySelectorAll('.sub-btn').forEach(btn =>
+                btn.classList.toggle('active', btn.dataset.mode === mode)
+            );
+            const q = { singles: '? + ?', add: '? + ?', sub: '? − ?', mix: '? + ?' };
+            document.getElementById('question').textContent = q[mode] || '? + ?';
             startFresh();
         }
 
         function startFresh() {
             drillStart = Date.now();
-            let pool = shuffle(buildFacts());
+            let pool;
+            if (currentMode === 'singles') {
+                pool = shuffle(buildSingleFacts());
+            } else {
+                const allFacts = buildAllFacts();
+                pool = shuffle(allFacts.filter(f => {
+                    if (currentMode === 'add') return f.op === '+';
+                    if (currentMode === 'sub') return f.op === '-';
+                    return true;
+                }));
+            }
             queue = [...pool];
-            missed = {}; correct = 0; wrong = 0; streak = 0; doneCount = 0; total = queue.length;
+            missed = {}; correct = 0; wrong = 0; streak = 0; doneCount = 0;
+            total = queue.length;
             document.getElementById('done-screen').classList.remove('visible');
             updateStats(); nextQ();
         }
@@ -600,7 +736,8 @@
             if (!mf.length) return;
             drillStart = Date.now();
             queue = shuffle([...mf, ...mf]);
-            missed = {}; correct = 0; wrong = 0; streak = 0; doneCount = 0; total = queue.length;
+            missed = {}; correct = 0; wrong = 0; streak = 0; doneCount = 0;
+            total = queue.length;
             document.getElementById('done-screen').classList.remove('visible');
             updateStats(); nextQ();
         }
@@ -609,13 +746,12 @@
             clearMC();
             if (!queue.length) { showDone(); return; }
             current = queue.pop();
-            document.getElementById('question').textContent = formatQuestion(current);
+            const opSym = current.op === '+' ? '+' : '−';
+            document.getElementById('question').textContent = `${current.a} ${opSym} ${current.b}`;
             document.getElementById('feedback').textContent = '';
             document.getElementById('feedback').className = '';
-            const n = document.getElementById('answer-num'), d = document.getElementById('answer-den');
-            n.value = ''; n.className = 'frac-inp';
-            d.value = ''; d.className = 'frac-inp';
-            n.focus();
+            const inp = document.getElementById('answer-input');
+            inp.value = ''; inp.className = ''; inp.focus();
             updateProgress(); startMCTimer();
         }
 
@@ -630,50 +766,53 @@
             if (!mcVisible) return;
             mcVisible = false;
             document.getElementById('mc-overlay').classList.remove('visible');
-            document.getElementById('answer-num').focus();
+            document.getElementById('answer-input').focus();
         }
 
         function showMC() {
             if (!current) return;
-            const q = formatQuestion(current);
-            document.getElementById('mc-label').textContent = mcDur > 2500 ? `yeah — ${q}` : `hint — ${q}`;
+            const opSym = current.op === '+' ? '+' : '−';
+            const label = mcDur > 2500
+                ? `yeah — ${current.a} ${opSym} ${current.b}`
+                : `hint — ${current.a} ${opSym} ${current.b}`;
+            document.getElementById('mc-label').textContent = label;
             document.getElementById('mc-content').innerHTML = buildMCContent(current);
+            document.getElementById('mc-hint').textContent = '';
             mcVisible = true;
             document.getElementById('mc-overlay').classList.add('visible');
-            document.getElementById('answer-num').focus();
+            document.getElementById('answer-input').focus();
         }
 
         function submit() {
             if (!current) return;
             if (mcVisible) { dismissMC(); return; }
             clearMC();
-            const numVal = parseInt(document.getElementById('answer-num').value);
-            const denVal = parseInt(document.getElementById('answer-den').value);
-            if (isNaN(numVal) || isNaN(denVal)) return;
+            const inp = document.getElementById('answer-input');
+            const val = parseInt(inp.value);
+            if (isNaN(val)) return;
+            const ans = current.answer;
+            const key = `${current.a}${current.op}${current.b}`;
 
-            const ok = numVal === current.rNum && denVal === current.rDen;
-            const key = `${current.num}${getSep()}${current.den}`;
-            const n = document.getElementById('answer-num'), d = document.getElementById('answer-den');
-
-            if (ok) {
-                n.className = 'frac-inp correct'; d.className = 'frac-inp correct';
+            if (val === ans) {
+                inp.className = 'correct';
                 document.getElementById('feedback').textContent = streak >= 4 ? `${streak + 1} in a row` : 'Correct';
                 document.getElementById('feedback').className = 'correct';
                 correct++; streak++; doneCount++;
                 if (missed[key]) { missed[key].count--; if (missed[key].count <= 0) delete missed[key]; }
-                updateStats(); setTimeout(nextQ, 500);
+                updateStats();
+                setTimeout(nextQ, 600);
             } else {
-                n.className = 'frac-inp wrong'; d.className = 'frac-inp wrong';
+                inp.className = 'wrong';
                 document.getElementById('feedback').textContent = '';
                 document.getElementById('feedback').className = 'wrong';
                 wrong++; streak = 0;
                 if (!missed[key]) missed[key] = { fact: current, count: 0 };
                 missed[key].count++;
                 queue.unshift(current);
-                updateStats(); showMC();
+                updateStats();
+                showMC();
                 setTimeout(() => {
-                    n.value = ''; n.className = 'frac-inp';
-                    d.value = ''; d.className = 'frac-inp';
+                    inp.value = ''; inp.className = '';
                     document.getElementById('feedback').textContent = '';
                     document.getElementById('feedback').className = '';
                 }, 500);
@@ -684,35 +823,21 @@
             clearMC();
             const elapsed = drillStart ? Date.now() - drillStart : 0;
             const timeStr = fmtDrillTime(elapsed);
-            const t = correct + wrong, pct = t > 0 ? Math.round((correct / t) * 100) : 0;
+            const t = correct + wrong;
+            const pct = t > 0 ? Math.round((correct / t) * 100) : 0;
             document.getElementById('done-title').textContent = pct >= 90 ? 'Excellent.' : pct >= 70 ? 'Good progress.' : 'Keep going.';
-            document.getElementById('done-sub').textContent   = `${correct} correct, ${wrong} missed — ${pct}%`;
-            document.getElementById('done-time').textContent  = timeStr;
+            document.getElementById('done-sub').textContent = `${correct} correct, ${wrong} missed — ${pct}%`;
+            document.getElementById('done-time').textContent = timeStr;
             document.getElementById('missed-btn').style.display = Object.keys(missed).length ? 'block' : 'none';
-            const hist = saveDrillResult('history_fractions_' + currentMode, pct, timeStr, 'Full');
+            const hist = saveDrillResult('history_addsub_' + currentMode, pct, timeStr, 'Full');
             document.getElementById('done-history').innerHTML = renderDrillHistory(hist);
             document.getElementById('done-screen').classList.add('visible');
         }
 
         // ── EVENT LISTENERS ────────────────────────────────────────────────────
 
-        document.getElementById('answer-num').addEventListener('keydown', e => {
-            if (e.key === 'Enter') {
-                const denInp = document.getElementById('answer-den');
-                if (!denInp.value) { denInp.focus(); } else { submit(); }
-            }
-        });
-        document.getElementById('answer-den').addEventListener('keydown', e => { if (e.key === 'Enter') submit(); });
+        document.getElementById('answer-input').addEventListener('keydown', e => { if (e.key === 'Enter') submit(); });
         document.addEventListener('keydown', e => { if (e.key === 'Enter') return; if (mcVisible) dismissMC(); });
-
-        // Auto-advance: jump to denominator as soon as the typed numerator matches
-        document.getElementById('answer-num').addEventListener('input', () => {
-            if (!current) return;
-            if (parseInt(document.getElementById('answer-num').value) === current.rNum) {
-                document.getElementById('answer-den').focus();
-            }
-        });
-
         document.getElementById('mc-overlay').addEventListener('click', dismissMC);
         document.getElementById('submit-btn').addEventListener('click', submit);
         document.getElementById('restart-btn').addEventListener('click', startFresh);
@@ -732,7 +857,7 @@
         function closeMenu() {
             modeMenu.classList.remove('open');
             menuBackdrop.classList.remove('open');
-            document.getElementById('answer-num').focus();
+            document.getElementById('answer-input').focus();
         }
 
         modeBtn.addEventListener('click', () => {
