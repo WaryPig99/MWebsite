@@ -837,7 +837,7 @@
         <div id="done-history"></div>
     </div>
 
-    <div class="mc-overlay" id="mc-overlay" tabindex="-1" onclick="dismissMoronChecker()">
+    <div class="mc-overlay" id="mc-overlay" tabindex="-1" onclick="dismissMC()">
         <div class="mc-label" id="mc-label"></div>
         <div class="mc-content" id="mc-content"></div>
         <div class="mc-hint" id="mc-hint"></div>
@@ -879,7 +879,7 @@
 
             _timerTimeout = setTimeout(() => {
                 if (_timerGen !== gen) return;
-                showMoronChecker();
+                showMC();
             }, mcDuration);
         }
 
@@ -892,21 +892,21 @@
         }
         // ────────────────────────────────────────────────────────────────
 
-        function clearMoronChecker() {
+        function clearMC() {
             _clearTimer();
             mcVisible = false;
             document.getElementById('mc-overlay').classList.remove('visible');
             document.getElementById('mc-hint').textContent = '';
         }
 
-        function dismissMoronChecker() {
+        function dismissMC() {
             if (!mcVisible) return;
             mcVisible = false;
             document.getElementById('mc-overlay').classList.remove('visible');
             document.getElementById('answer-num').focus();
         }
 
-        function showMoronChecker() {
+        function showMC() {
             if (!current) return;
             document.getElementById('mc-label').textContent = buildMCLabel(current);
             document.getElementById('mc-content').innerHTML = buildMCContent(current);
@@ -1084,7 +1084,7 @@
         }
 
         function nextQuestion() {
-            clearMoronChecker();
+            clearMC();
             if (!queue.length) { showDone(); return; }
             current = queue.pop();
             document.getElementById('question').textContent = formatQuestion(current);
@@ -1111,8 +1111,8 @@
 
         function submitAnswer() {
             if (!current) return;
-            if (mcVisible) { dismissMoronChecker(); return; }
-            clearMoronChecker();
+            if (mcVisible) { dismissMC(); return; }
+            clearMC();
             const numVal = parseInt(document.getElementById('answer-num').value);
             const denVal = parseInt(document.getElementById('answer-den').value);
             if (isNaN(numVal) || isNaN(denVal)) return;
@@ -1141,7 +1141,7 @@
                 missed[key].count++;
                 queue.unshift(current);
                 updateStats();
-                showMoronChecker();
+                showMC();
                 setTimeout(() => {
                     numInp.value = ''; numInp.className = 'answer-input';
                     denInp.value = ''; denInp.className = 'answer-input';
@@ -1195,7 +1195,7 @@
         }
 
         function showDone() {
-            clearMoronChecker();
+            clearMC();
             document.getElementById('drill-screen').style.display = 'none';
             document.getElementById('done-screen').style.display = 'block';
             const elapsed = drillStart ? Date.now() - drillStart : 0;
@@ -1223,7 +1223,7 @@
             }
         });
         document.getElementById('answer-den').addEventListener('keydown', e => { if (e.key === 'Enter') submitAnswer(); });
-        document.addEventListener('keydown', e => { if (e.key === 'Enter') return; if (mcVisible) dismissMoronChecker(); });
+        document.addEventListener('keydown', e => { if (e.key === 'Enter') return; if (mcVisible) dismissMC(); });
 
         document.getElementById('answer-num').addEventListener('input', () => {
             if (!current) return;

@@ -961,7 +961,7 @@
         <div id="done-history"></div>
     </div>
 
-    <div class="mc-overlay" id="mc-overlay" tabindex="-1" onclick="dismissMoronChecker()">
+    <div class="mc-overlay" id="mc-overlay" tabindex="-1" onclick="dismissMC()">
         <div class="mc-label" id="mc-label"></div>
         <div class="mc-grid-wrap" id="mc-grid-wrap"><table class="mc-grid" id="mc-grid"></table></div>
         <div class="mc-hint" id="mc-hint"></div>
@@ -1046,7 +1046,7 @@
         }
 
         function nextQuestion() {
-            clearMoronChecker();
+            clearMC();
             if (!queue.length) { showDone(); return; }
             const flip = Math.random() > 0.5;
             const [a, b] = queue.pop();
@@ -1077,7 +1077,7 @@
             _timerRaf = requestAnimationFrame(tick);
             _timerTimeout = setTimeout(() => {
                 if (_timerGen !== gen) return;
-                showMoronChecker();
+                showMC();
             }, mcDuration);
         }
 
@@ -1089,28 +1089,28 @@
             document.getElementById('timer-bar').style.width = '100%';
         }
 
-        function clearMoronChecker() {
+        function clearMC() {
             _clearTimer();
             mcVisible = false;
             document.getElementById('mc-overlay').classList.remove('visible');
             document.getElementById('mc-hint').textContent = '';
         }
 
-        function dismissMoronChecker() {
+        function dismissMC() {
             if (!mcVisible) return;
             mcVisible = false;
             document.getElementById('mc-overlay').classList.remove('visible');
             document.getElementById('answer-input').focus();
         }
 
-        function showMoronChecker() {
+        function showMC() {
             if (!current) return;
             const [qa, qb] = current;
             const label = mcDuration > 2500 ? `yeah — ${qa} × ${qb}` : `moron checker — ${qa} × ${qb}`;
             document.getElementById('mc-label').textContent = label;
-            buildMCGrid(qa, qb);
-            // FIX: was calling getHint() — correct name is getHintText()
-            document.getElementById('mc-hint').textContent = getHintText(qa, qb);
+            buildGrid(qa, qb);
+            // FIX: was calling getHint() — correct name is getHint()
+            document.getElementById('mc-hint').textContent = getHint(qa, qb);
             mcVisible = true;
             document.getElementById('mc-overlay').classList.add('visible');
             document.getElementById('answer-input').focus();
@@ -1124,7 +1124,7 @@
             }, 50);
         }
 
-        function buildMCGrid(qa, qb) {
+        function buildGrid(qa, qb) {
             const table = document.getElementById('mc-grid');
             table.innerHTML = '';
             const cols = [];
@@ -1165,19 +1165,19 @@
             }
         }
 
-        function getHintText(a, b) {
+        function getHint(a, b) {
             const key = String(Math.min(a, b)), other = Math.max(a, b);
             return HINTS[key] ? HINTS[key](other) : `${a} × ${b} = ${a * b}`;
         }
 
         function showHint() {
-            if (current) document.getElementById('hint-text').textContent = getHintText(current[0], current[1]);
+            if (current) document.getElementById('hint-text').textContent = getHint(current[0], current[1]);
         }
 
         function submitAnswer() {
             if (!current) return;
-            if (mcVisible) { dismissMoronChecker(); return; }
-            clearMoronChecker();
+            if (mcVisible) { dismissMC(); return; }
+            clearMC();
             const inp = document.getElementById('answer-input');
             const val = parseInt(inp.value);
             if (isNaN(val)) return;
@@ -1202,7 +1202,7 @@
                 missed[key].count++;
                 queue.unshift(current);
                 updateStats();
-                showMoronChecker();
+                showMC();
                 setTimeout(() => {
                     inp.value = ''; inp.className = 'answer-input';
                     document.getElementById('feedback').textContent = '';
@@ -1256,7 +1256,7 @@
         }
 
         function showDone() {
-            clearMoronChecker();
+            clearMC();
             document.getElementById('drill-screen').style.display = 'none';
             document.getElementById('done-screen').style.display = 'block';
             const elapsed = drillStart ? Date.now() - drillStart : 0;
@@ -1283,7 +1283,7 @@
 
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Enter') return;
-            if (mcVisible) dismissMoronChecker();
+            if (mcVisible) dismissMC();
         });
 
         startFresh();
