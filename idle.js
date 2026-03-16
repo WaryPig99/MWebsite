@@ -72,7 +72,7 @@
         var s = document.createElement('style');
         s.textContent = [
             '#idle-toggle{position:fixed;bottom:1.2rem;right:1.4rem;background:none;border:none;',
-            'cursor:pointer;font-size:20px;color:#d8d4ce;line-height:1;padding:4px;z-index:300;',
+            'cursor:pointer;font-size:42px;color:#d8d4ce;line-height:1;padding:4px;z-index:300;',
             'user-select:none;transition:color .25s;font-family:serif;}',
             '#idle-toggle:hover,#idle-toggle.on{color:#8a8680;}',
             '#idle-panel{position:fixed;top:0;right:0;bottom:0;width:216px;background:#faf9f7;',
