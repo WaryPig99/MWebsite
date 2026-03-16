@@ -2,12 +2,13 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, interactive-widget=resizes-content">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, interactive-widget=resizes-visual">
     <title>Times Tables — Fractions</title>
     <script>try{if(localStorage.getItem('dark')==='1')document.documentElement.classList.add('dark');}catch(e){}</script>
     <link rel="stylesheet" href="shared.css">
     <style>
         * { -webkit-tap-highlight-color: transparent; }
+
         html, body {
             height: 100%;
             overflow: hidden;
@@ -19,47 +20,208 @@
         }
         html.dark body { background: #0d0f12; color: #c8c4bc; }
 
-        /* Mode toggle strip */
-        #mode-row {
+        /* ── TOP BAR ─────────────────────────────────────────────────────── */
+        #topbar {
             position: fixed;
-            top: 30px;
-            left: 0;
-            right: 0;
+            top: 0; left: 0; right: 0;
+            height: 44px;
             display: flex;
             align-items: center;
-            justify-content: center;
-            gap: 10px;
-            padding: 3px 14px;
-            border-bottom: 0.5px solid #e0ddd8;
+            justify-content: space-between;
+            padding: 0 14px;
             background: #faf9f7;
-            z-index: 10;
+            border-bottom: 0.5px solid #e0ddd8;
+            z-index: 300;
         }
+        html.dark #topbar { background: #0d0f12; border-bottom-color: #252830; }
 
-        .mode-btn {
+        #mode-btn {
+            background: none;
+            border: none;
+            padding: 4px 0;
             font-family: 'EB Garamond', serif;
-            font-size: 10px;
-            color: #aaa69e;
+            font-size: 13px;
+            letter-spacing: .16em;
             text-transform: uppercase;
-            letter-spacing: .12em;
+            color: #aaa69e;
             cursor: pointer;
             user-select: none;
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            line-height: 1;
+        }
+        #mode-btn:active { color: #1a1916; }
+        html.dark #mode-btn { color: #6a6660; }
+        html.dark #mode-btn:active { color: #c8c4bc; }
+
+        #topbar-dark {
+            background: none;
+            border: none;
+            padding: 4px 0;
+            font-size: 16px;
+            color: #aaa69e;
+            cursor: pointer;
+            user-select: none;
+            line-height: 1;
+        }
+        html.dark #topbar-dark { color: #6a6660; }
+
+        /* ── MODE DROPDOWN ───────────────────────────────────────────────── */
+        #menu-backdrop {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 280;
+        }
+        #menu-backdrop.open { display: block; }
+
+        #mode-menu {
+            position: fixed;
+            top: 44px;
+            left: 0;
+            min-width: 192px;
+            background: #faf9f7;
+            border: 0.5px solid #e0ddd8;
+            border-top: none;
+            z-index: 290;
+            display: none;
+        }
+        html.dark #mode-menu { background: #0d0f12; border-color: #252830; }
+
+        #mode-menu.open {
+            display: block;
+            animation: menu-drop .14s ease;
+        }
+        @keyframes menu-drop {
+            from { opacity: 0; transform: translateY(-5px); }
+            to   { opacity: 1; transform: translateY(0); }
         }
 
-            .mode-btn.active {
-                color: #1a1916;
-            }
+        .mode-item {
+            display: flex;
+            align-items: baseline;
+            gap: 11px;
+            padding: 13px 18px;
+            font-family: 'EB Garamond', serif;
+            font-size: 15px;
+            letter-spacing: .04em;
+            color: #8a8680;
+            text-decoration: none;
+            border-bottom: 0.5px solid #e0ddd8;
+        }
+        .mode-item:last-child { border-bottom: none; }
+        .mode-item:active { background: #f0ede8; }
+        html.dark .mode-item { color: #6a6660; border-bottom-color: #252830; }
+        html.dark .mode-item:active { background: #13161a; }
 
-        .mode-sep {
-            font-size: 10px;
+        .mode-item.current {
+            color: #1a1916;
+        }
+        html.dark .mode-item.current { color: #faf9f7; }
+
+        .mode-sym {
+            font-family: 'Libre Baskerville', serif;
+            font-weight: 700;
+            font-size: 14px;
+            width: 14px;
+            text-align: center;
+            flex-shrink: 0;
             color: #c8c4bc;
         }
+        .mode-item.current .mode-sym { color: #1a1916; }
+        html.dark .mode-sym { color: #3d4148; }
+        html.dark .mode-item.current .mode-sym { color: #faf9f7; }
 
-        /* Stage starts below mode-row */
-        #stage {
-            top: 52px;
+        /* ── SUB-MODE ROW ────────────────────────────────────────────────── */
+        #sub-mode-row {
+            position: fixed; top: 44px; left: 0; right: 0;
+            height: 32px; display: flex; align-items: center; justify-content: center;
+            gap: 16px; background: #faf9f7;
+            border-bottom: 0.5px solid #e0ddd8; z-index: 10;
+        }
+        html.dark #sub-mode-row { background: #0d0f12; border-bottom-color: #252830; }
+
+        .sub-btn {
+            font-family: 'EB Garamond', serif; font-size: 11px;
+            letter-spacing: .14em; text-transform: uppercase; color: #aaa69e;
+            cursor: pointer; user-select: none; background: none; border: none; padding: 0;
+        }
+        .sub-btn.active { color: #1a1916; }
+        html.dark .sub-btn { color: #6a6660; }
+        html.dark .sub-btn.active { color: #faf9f7; }
+
+        /* ── PROGRESS HAIRLINE ───────────────────────────────────────────── */
+        #prog-wrap {
+            position: fixed;
+            top: 76px; left: 0; right: 0;
+            height: 1px;
+            background: #e0ddd8;
+            z-index: 10;
+        }
+        html.dark #prog-wrap { background: #252830; }
+
+        #prog-fill {
+            height: 100%;
+            background: #1a1916;
+            width: 0%;
+            transition: width .4s ease;
+        }
+        html.dark #prog-fill { background: #c8c4bc; }
+
+        /* ── QUESTION AREA ───────────────────────────────────────────────── */
+        #question-area {
+            position: fixed;
+            top: 77px;
+            left: 0; right: 0;
+            /* bottom set dynamically by fitLayout() */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 0 1.5rem;
         }
 
-        /* Fraction inputs */
+        #question {
+            font-family: 'Libre Baskerville', serif;
+            font-size: 80px;
+            font-weight: 700;
+            letter-spacing: -2px;
+            line-height: 1;
+            text-align: center;
+            color: #1a1916;
+        }
+        html.dark #question { color: #faf9f7; }
+
+        #feedback {
+            font-size: 14px;
+            font-style: italic;
+            text-align: center;
+            min-height: 20px;
+            margin-top: 12px;
+            color: #8a8680;
+            letter-spacing: .02em;
+        }
+        #feedback.correct { color: #3a7d5e; }
+        #feedback.wrong   { color: #b84040; }
+        html.dark #feedback { color: #6a6660; }
+
+        /* ── INPUT ROW (pinned above keyboard) ───────────────────────────── */
+        #input-row {
+            position: fixed;
+            left: 0; right: 0;
+            /* bottom set dynamically by fitLayout() */
+            padding: 10px 14px 12px;
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            background: #faf9f7;
+            border-top: 0.5px solid #e0ddd8;
+            z-index: 20;
+        }
+        html.dark #input-row { background: #0d0f12; border-top-color: #252830; }
+
+        /* ── FRACTION INPUTS ─────────────────────────────────────────────── */
         .frac-inp {
             flex: 1;
             min-width: 0;
@@ -67,36 +229,68 @@
             border-radius: 2px;
             background: #fff;
             font-family: 'Libre Baskerville', serif;
-            font-size: 28px;
+            font-size: 26px;
             font-weight: 700;
             text-align: center;
             color: #1a1916;
-            padding: 13px 4px;
+            padding: 12px 4px;
             outline: none;
             -webkit-appearance: none;
             transition: border-color .15s;
         }
-
-            .frac-inp.correct {
-                border-color: #3a7d5e;
-                color: #3a7d5e;
-            }
-
-            .frac-inp.wrong {
-                border-color: #b84040;
-                color: #b84040;
-            }
+        .frac-inp.correct { border-color: #3a7d5e; color: #3a7d5e; }
+        .frac-inp.wrong   { border-color: #b84040; color: #b84040; }
+        html.dark .frac-inp { background: #13161a; border-color: #252830; color: #faf9f7; }
 
         #input-sep {
             font-family: 'Libre Baskerville', serif;
-            font-size: 28px;
+            font-size: 26px;
             font-weight: 700;
             color: #c8c4bc;
             flex-shrink: 0;
-            line-height: 1;
         }
+        html.dark #input-sep { color: #3d4148; }
 
-        /* Fraction MC content card */
+        #submit-btn {
+            flex-shrink: 0;
+            width: 56px;
+            background: #1a1916;
+            color: #faf9f7;
+            border: none;
+            border-radius: 2px;
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 24px;
+            cursor: pointer;
+            align-self: stretch;
+        }
+        #submit-btn:active { opacity: .7; }
+        html.dark #submit-btn { background: #c8c4bc; color: #0d0f12; }
+
+        /* ── MC OVERLAY ──────────────────────────────────────────────────── */
+        #mc-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            z-index: 100;
+            background: rgba(250,249,247,0.88);
+            backdrop-filter: blur(4px);
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+        }
+        #mc-overlay.visible { display: flex; }
+        html.dark #mc-overlay { background: rgba(13,15,18,0.92); }
+
+        #mc-label {
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: .2em;
+            color: #8a8680;
+            margin-bottom: 12px;
+        }
+        html.dark #mc-label { color: #6a6660; }
+
         #mc-content {
             font-family: 'Libre Baskerville', serif;
             text-align: center;
@@ -105,17 +299,19 @@
             border-radius: 2px;
             background: #fff;
             min-width: 160px;
+            max-height: calc(100% - 80px);
+            overflow-y: auto;
         }
+        html.dark #mc-content { background: #13161a; border-color: #252830; }
 
         .mc-fact-row {
             font-size: 15px;
             color: #1a1916;
             margin: 3px 0;
         }
-
-            .mc-fact-row strong {
-                font-weight: 700;
-            }
+        .mc-fact-row strong { font-weight: 700; }
+        html.dark .mc-fact-row { color: #c8c4bc; }
+        html.dark .mc-fact-row strong { color: #faf9f7; }
 
         .mc-fact-divider {
             border: none;
@@ -123,77 +319,143 @@
             margin: 6px auto;
             width: 50px;
         }
+        html.dark .mc-fact-divider { border-top-color: #252830; }
 
         .mc-fact-answer {
             font-size: 19px;
             font-weight: 700;
             margin-top: 4px;
         }
-
-        /* Fractions dark mode overrides */
-        html.dark #mode-row { border-bottom-color: #252830; background: #0d0f12; }
-        html.dark .mode-btn { color: #6a6660; }
-        html.dark .mode-btn.active { color: #faf9f7; }
-        html.dark .mode-sep { color: #3d4148; }
-        html.dark .frac-inp { background: #13161a; border-color: #252830; color: #faf9f7; }
-        html.dark #input-sep { color: #3d4148; }
-        html.dark #mc-content { background: #13161a; border-color: #252830; }
-        html.dark .mc-fact-row { color: #c8c4bc; }
-        html.dark .mc-fact-row strong { color: #faf9f7; }
-        html.dark .mc-fact-divider { border-top-color: #252830; }
         html.dark .mc-fact-answer { color: #faf9f7; }
+
+        #mc-hint {
+            margin-top: 10px;
+            font-size: 12px;
+            font-style: italic;
+            color: #c8a060;
+            letter-spacing: .04em;
+            text-align: center;
+        }
+
+        #mc-dismiss {
+            margin-top: 14px;
+            font-size: 10px;
+            color: #aaa69e;
+            letter-spacing: .14em;
+            text-transform: uppercase;
+            font-style: italic;
+        }
+        html.dark #mc-dismiss { color: #6a6660; }
+
+        /* ── DONE SCREEN ─────────────────────────────────────────────────── */
+        #done-screen {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 50;
+            background: #faf9f7;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            text-align: center;
+        }
+        #done-screen.visible { display: flex; }
+        html.dark #done-screen { background: #0d0f12; }
+
+        #done-title {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 48px;
+            font-weight: 500;
+            margin-bottom: 6px;
+        }
+        html.dark #done-title { color: #faf9f7; }
+
+        #done-sub {
+            font-size: 15px;
+            color: #8a8680;
+            font-style: italic;
+            margin-bottom: 2rem;
+        }
+        html.dark #done-sub { color: #6a6660; }
+
+        #done-time {
+            font-size: 15px;
+            color: #8a8680;
+            font-style: italic;
+            margin-bottom: 0.5rem;
+        }
+        html.dark #done-time { color: #6a6660; }
+
+        .done-btn {
+            width: 100%;
+            max-width: 260px;
+            padding: 13px;
+            margin-bottom: 10px;
+            font-family: 'EB Garamond', serif;
+            font-size: 14px;
+            letter-spacing: .1em;
+            text-transform: uppercase;
+            border-radius: 2px;
+            cursor: pointer;
+        }
+        #restart-btn { background: #1a1916; color: #faf9f7; border: none; }
+        html.dark #restart-btn { background: #c8c4bc; color: #0d0f12; }
+        #missed-btn  { background: transparent; border: 0.5px solid #c8c4bc; color: #1a1916; display: none; }
+        html.dark #missed-btn { border-color: #252830; color: #c8c4bc; }
+
+        #done-history { margin-top: 1.5rem; text-align: center; }
     </style>
 </head>
 <body>
 
-    <div id="hud">
-        <div id="hud-title">
-            <a href="mobile.html" style="text-decoration:none;color:#c8c4bc;font-family:'EB Garamond',serif;font-size:10px;letter-spacing:.12em;">× times tables</a>
-            <a href="addsubtract.html" style="display:block;margin-top:2px;text-decoration:none;color:#c8c4bc;font-family:'EB Garamond',serif;font-size:9px;letter-spacing:.12em;text-transform:uppercase;">+/− add/sub</a>
-        </div>
-        <div id="hud-stats">
-            <span><b id="s-correct">0</b>ok</span>
-            <span><b id="s-wrong">0</b>miss</span>
-            <span><b id="s-streak">0</b>run</span>
-        </div>
-        <div id="mc-setting">
-            <span id="sess-full" class="sess-active" onclick="setSessionSize(0)" style="cursor:pointer;font-weight:600">Full</span>
-            <span style="color:#c8c4bc">·</span>
-            <span id="sess-25" onclick="setSessionSize(25)" style="cursor:pointer">25</span>
-            <span style="color:#c8c4bc">·</span>
-            <span id="sess-50" onclick="setSessionSize(50)" style="cursor:pointer">50</span>
-            <span style="color:#c8c4bc;margin:0 2px">|</span>
-            <input type="range" id="mc-range" min="3" max="15" value="5" step="1" oninput="updateTimer(this.value)">
-            <span id="mc-val">5s</span>
-            <span style="color:#c8c4bc;margin:0 2px">|</span>
-            <span id="dark-toggle" onclick="toggleDark()" style="cursor:pointer;font-size:12px;color:#aaa69e;user-select:none;flex-shrink:0">☽</span>
-        </div>
+    <!-- TOP BAR -->
+    <div id="topbar">
+        <button id="mode-btn" aria-label="Mode menu">☰ Mode</button>
+        <button id="topbar-dark" onclick="toggleDark()" aria-label="Toggle dark mode">☽</button>
     </div>
 
+    <!-- MODE DROPDOWN -->
+    <div id="menu-backdrop"></div>
+    <nav id="mode-menu" role="menu">
+        <a href="mobile.html"           class="mode-item"         role="menuitem"><span class="mode-sym">×</span>Multiply</a>
+        <a href="division-mobile.html"  class="mode-item"         role="menuitem"><span class="mode-sym">÷</span>Division</a>
+        <a href="addsubtract-mobile.html" class="mode-item"       role="menuitem"><span class="mode-sym">+</span>Add / Sub</a>
+        <a href="fractions-mobile.html" class="mode-item current" role="menuitem"><span class="mode-sym">½</span>Fractions</a>
+    </nav>
+
+    <!-- SUB-MODE ROW -->
+    <div id="sub-mode-row">
+        <button class="sub-btn active" data-mode="simplify" onclick="setMode('simplify')">Simplify</button>
+        <button class="sub-btn"        data-mode="ratio"    onclick="setMode('ratio')">Ratio</button>
+        <button class="sub-btn"        data-mode="decimal"  onclick="setMode('decimal')">Decimal</button>
+    </div>
+
+    <!-- PROGRESS HAIRLINE -->
     <div id="prog-wrap"><div id="prog-fill"></div></div>
 
-    <div id="mode-row">
-        <span class="mode-btn active" data-mode="simplify" onclick="setMode('simplify')">Simplify</span>
-        <span class="mode-sep">·</span>
-        <span class="mode-btn" data-mode="ratio" onclick="setMode('ratio')">Ratio</span>
-        <span class="mode-sep">·</span>
-        <span class="mode-btn" data-mode="decimal" onclick="setMode('decimal')">Decimal</span>
-    </div>
-
-    <div id="stage">
+    <!-- QUESTION AREA -->
+    <div id="question-area">
         <div id="question">?/?</div>
-        <div id="hint-text"></div>
-        <div id="timer-wrap"><div id="timer-fill"></div></div>
-        <div id="input-row">
-            <input class="frac-inp" id="answer-num" type="number" inputmode="numeric" placeholder="—" autocomplete="off">
-            <div id="input-sep">/</div>
-            <input class="frac-inp" id="answer-den" type="number" inputmode="numeric" placeholder="—" autocomplete="off">
-            <button id="submit-btn">→</button>
-        </div>
         <div id="feedback"></div>
-        <button id="hint-btn">Hint</button>
     </div>
 
+    <!-- INPUT ROW -->
+    <div id="input-row">
+        <input class="frac-inp" id="answer-num" type="number" inputmode="numeric" placeholder="—" autocomplete="off">
+        <div id="input-sep">/</div>
+        <input class="frac-inp" id="answer-den" type="number" inputmode="numeric" placeholder="—" autocomplete="off">
+        <button id="submit-btn">→</button>
+    </div>
+
+    <!-- Hidden DOM nodes required by shared.js -->
+    <div id="timer-wrap" style="display:none"><div id="timer-fill"></div></div>
+    <div id="hint-text"  style="display:none"></div>
+    <span id="s-correct" style="display:none">0</span>
+    <span id="s-wrong"   style="display:none">0</span>
+    <span id="s-streak"  style="display:none">0</span>
+
+    <!-- MORON CHECKER OVERLAY -->
     <div id="mc-overlay" tabindex="-1">
         <div id="mc-label"></div>
         <div id="mc-content"></div>
@@ -201,6 +463,7 @@
         <div id="mc-dismiss">Tap or type to dismiss</div>
     </div>
 
+    <!-- DONE SCREEN -->
     <div id="done-screen">
         <div id="done-title"></div>
         <div id="done-sub"></div>
@@ -212,12 +475,13 @@
 
     <script src="shared.js"></script>
     <script>
+        // ── DRILL LOGIC ────────────────────────────────────────────────────────
+
         let currentMode = 'simplify';
         let queue = [], missed = {};
         let correct = 0, wrong = 0, streak = 0, current = null, total = 0, doneCount = 0;
         let drillStart = null;
-        let mcTimer = null, mcFrame = null, mcStart = null, mcVisible = false;
-        let sessionSize = 0;
+        let mcVisible = false;
 
         function gcd(a, b) { return b === 0 ? a : gcd(b, a % b); }
 
@@ -273,16 +537,16 @@
                 const bigNum = Math.round(fact.rNum * mult / fact.rDen);
                 const div = gcd(bigNum, mult);
                 return `<div class="mc-fact-row">${dec} = ${bigNum}/${mult}</div>
-                            <div class="mc-fact-row">÷ ${div}</div>
-                            <hr class="mc-fact-divider">
-                            <div class="mc-fact-row mc-fact-answer">${fact.rNum}/${fact.rDen}</div>
-                            ${visual}`;
+                        <div class="mc-fact-row">÷ ${div}</div>
+                        <hr class="mc-fact-divider">
+                        <div class="mc-fact-row mc-fact-answer">${fact.rNum}/${fact.rDen}</div>
+                        ${visual}`;
             }
             return `<div class="mc-fact-row">${fact.num} ÷ ${fact.factor} = <strong>${fact.rNum}</strong></div>
-                        <div class="mc-fact-row">${fact.den} ÷ ${fact.factor} = <strong>${fact.rDen}</strong></div>
-                        <hr class="mc-fact-divider">
-                        <div class="mc-fact-row mc-fact-answer">${fact.rNum} ${sep} ${fact.rDen}</div>
-                        ${visual}`;
+                    <div class="mc-fact-row">${fact.den} ÷ ${fact.factor} = <strong>${fact.rDen}</strong></div>
+                    <hr class="mc-fact-divider">
+                    <div class="mc-fact-row mc-fact-answer">${fact.rNum} ${sep} ${fact.rDen}</div>
+                    ${visual}`;
         }
 
         function buildPieSVG(n, d) {
@@ -316,28 +580,15 @@
 
         function setMode(mode) {
             currentMode = mode;
-            document.querySelectorAll('.mode-btn').forEach(b => b.classList.toggle('active', b.dataset.mode === mode));
+            document.querySelectorAll('.sub-btn').forEach(b => b.classList.toggle('active', b.dataset.mode === mode));
             document.getElementById('input-sep').textContent = getSep();
             document.getElementById('question').textContent = mode === 'decimal' ? '?' : '?/?';
-            startFresh();
-        }
-
-        function updateTimer(v) { document.getElementById('mc-val').textContent = v + 's'; mcDur = parseInt(v) * 1000; }
-
-        function setSessionSize(n) {
-            sessionSize = n;
-            [['sess-full', 0], ['sess-25', 25], ['sess-50', 50]].forEach(([id, val]) => {
-                const el = document.getElementById(id);
-                el.classList.toggle('sess-active', n === val);
-                el.style.fontWeight = n === val ? '600' : '';
-            });
             startFresh();
         }
 
         function startFresh() {
             drillStart = Date.now();
             let pool = shuffle(buildFacts());
-            if (sessionSize > 0) pool = pool.slice(0, sessionSize);
             queue = [...pool];
             missed = {}; correct = 0; wrong = 0; streak = 0; doneCount = 0; total = queue.length;
             document.getElementById('done-screen').classList.remove('visible');
@@ -359,7 +610,6 @@
             if (!queue.length) { showDone(); return; }
             current = queue.pop();
             document.getElementById('question').textContent = formatQuestion(current);
-            document.getElementById('hint-text').textContent = '';
             document.getElementById('feedback').textContent = '';
             document.getElementById('feedback').className = '';
             const n = document.getElementById('answer-num'), d = document.getElementById('answer-den');
@@ -434,16 +684,17 @@
             clearMC();
             const elapsed = drillStart ? Date.now() - drillStart : 0;
             const timeStr = fmtDrillTime(elapsed);
-            const sessionLabel = sessionSize === 0 ? 'Full' : String(sessionSize);
             const t = correct + wrong, pct = t > 0 ? Math.round((correct / t) * 100) : 0;
             document.getElementById('done-title').textContent = pct >= 90 ? 'Excellent.' : pct >= 70 ? 'Good progress.' : 'Keep going.';
-            document.getElementById('done-sub').textContent = `${correct} correct, ${wrong} missed — ${pct}%`;
-            document.getElementById('done-time').textContent = timeStr + ' · ' + sessionLabel;
+            document.getElementById('done-sub').textContent   = `${correct} correct, ${wrong} missed — ${pct}%`;
+            document.getElementById('done-time').textContent  = timeStr;
             document.getElementById('missed-btn').style.display = Object.keys(missed).length ? 'block' : 'none';
-            const hist = saveDrillResult('history_fractions_' + currentMode, pct, timeStr, sessionLabel);
+            const hist = saveDrillResult('history_fractions_' + currentMode, pct, timeStr, 'Full');
             document.getElementById('done-history').innerHTML = renderDrillHistory(hist);
             document.getElementById('done-screen').classList.add('visible');
         }
+
+        // ── EVENT LISTENERS ────────────────────────────────────────────────────
 
         document.getElementById('answer-num').addEventListener('keydown', e => {
             if (e.key === 'Enter') {
@@ -461,27 +712,56 @@
                 document.getElementById('answer-den').focus();
             }
         });
+
         document.getElementById('mc-overlay').addEventListener('click', dismissMC);
         document.getElementById('submit-btn').addEventListener('click', submit);
-        document.getElementById('hint-btn').addEventListener('click', () => {
-            if (!current) return;
-            if (currentMode === 'decimal') {
-                document.getElementById('hint-text').textContent = `= ${current.rNum}/${current.rDen}`;
-            } else {
-                document.getElementById('hint-text').textContent = `÷ ${current.factor} → ${formatAnswer(current)}`;
-            }
-        });
         document.getElementById('restart-btn').addEventListener('click', startFresh);
         document.getElementById('missed-btn').addEventListener('click', drillMissed);
 
-        function fitStage() {
-            const vh = window.visualViewport ? window.visualViewport.height : window.innerHeight;
-            const stage = document.getElementById('stage');
-            stage.style.height = (vh - 52) + 'px';
-            stage.style.bottom = 'auto';
+        // ── MODE MENU ──────────────────────────────────────────────────────────
+
+        const modeBtn      = document.getElementById('mode-btn');
+        const modeMenu     = document.getElementById('mode-menu');
+        const menuBackdrop = document.getElementById('menu-backdrop');
+
+        function openMenu() {
+            modeMenu.classList.add('open');
+            menuBackdrop.classList.add('open');
         }
-        if (window.visualViewport) window.visualViewport.addEventListener('resize', fitStage);
-        fitStage();
+
+        function closeMenu() {
+            modeMenu.classList.remove('open');
+            menuBackdrop.classList.remove('open');
+            document.getElementById('answer-num').focus();
+        }
+
+        modeBtn.addEventListener('click', () => {
+            modeMenu.classList.contains('open') ? closeMenu() : openMenu();
+        });
+        menuBackdrop.addEventListener('click', closeMenu);
+
+        // ── VISUAL VIEWPORT LAYOUT ─────────────────────────────────────────────
+
+        function fitLayout() {
+            const vv  = window.visualViewport;
+            const kbH = vv ? Math.max(0, window.innerHeight - vv.height - vv.offsetTop) : 0;
+
+            const inputRow  = document.getElementById('input-row');
+            const qArea     = document.getElementById('question-area');
+            const mcOverlay = document.getElementById('mc-overlay');
+            const inputH    = inputRow.offsetHeight || 76;
+            const clampBot  = kbH + inputH;
+
+            inputRow.style.bottom  = kbH + 'px';
+            qArea.style.bottom     = clampBot + 'px';
+            mcOverlay.style.bottom = clampBot + 'px';
+        }
+
+        if (window.visualViewport) {
+            window.visualViewport.addEventListener('resize', fitLayout);
+            window.visualViewport.addEventListener('scroll', fitLayout);
+        }
+        fitLayout();
 
         startFresh();
     </script>
