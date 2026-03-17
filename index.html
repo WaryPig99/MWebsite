@@ -273,6 +273,7 @@
                 document.getElementById('feedback').textContent = streak >= 4 ? `${streak + 1} in a row` : 'Correct';
                 document.getElementById('feedback').className = 'feedback correct';
                 correct++; streak++; doneCount++;
+                checkLeafState();
                 if (missed[key]) { missed[key].count--; if (missed[key].count <= 0) delete missed[key]; }
                 updateStats();
                 updateProgress();
@@ -335,6 +336,93 @@
         });
 
         startFresh();
+
+        // ── FALLING LEAF FLOW STATE ──────────────────────────────
+        const leafTimestamps = [];
+        let leafInterval = null;
+
+        function spawnLeaf() {
+            const dark = document.documentElement.classList.contains('dark');
+            const color = dark ? '#c8c4bc' : '#1a1916';
+            const x = Math.random() * 90 + 5; // 5–95% across
+            const drift = (Math.random() - 0.5) * 60; // lateral drift px
+            const rot = (Math.random() - 0.5) * 40; // ±20deg
+            const dur = 3000 + Math.random() * 1500; // 3–4.5 seconds
+
+            const id = 'leaf' + Date.now() + Math.random().toString().replace('.', '');
+            const style = `
+        @keyframes ${id} {
+    0%   { transform: translateY(-40px)  translateX(0px)   rotate(-5deg); }
+        30%  { transform: translateY(30vh)   translateX(40px)  rotate(2deg);  }
+        60%  { transform: translateY(65vh)   translateX(20px)  rotate(-3deg); }
+        100% { transform: translateY(105vh)  translateX(50px)  rotate(1deg);  }
+        }
+    `;
+            const styleEl = document.createElement('style');
+            styleEl.textContent = style;
+            document.head.appendChild(styleEl);
+
+            const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+            svg.setAttribute('width', '18');
+            svg.setAttribute('height', '32');
+            svg.setAttribute('viewBox', '0 0 18 32');
+            svg.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: ${x}%;
+        pointer-events: none;
+        z-index: 5;
+        animation: ${id} ${dur}ms linear forwards;
+    `;
+
+            const petals = [
+                // flat face-on petal
+                'M10 2 C14 2 18 6 18 10 C18 14 14 17 10 17 C6 17 2 14 2 10 C2 6 6 2 10 2Z',
+                // sideways slim petal
+                'M2 10 C2 5 6 1 10 2 C16 3 20 7 18 10 C16 13 10 18 4 17 C1 15 2 13 2 10Z',
+                // tilted elongated petal  
+                'M4 2 C10 1 18 4 18 9 C18 14 12 19 7 18 C2 17 0 13 1 8 C2 4 4 2 4 2Z',
+                // small curled petal
+                'M8 1 C13 0 19 5 17 10 C15 15 9 19 5 16 C1 13 1 7 4 4 C6 2 8 1 8 1Z',
+            ];
+            const d = petals[Math.floor(Math.random() * petals.length)];
+            const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            path.setAttribute('d', d);
+            path.setAttribute('fill', color);
+            svg.appendChild(path);
+            document.body.appendChild(svg);
+
+            setTimeout(() => { svg.remove(); styleEl.remove(); }, dur + 50);
+        }
+
+        let leafTimeout = null;
+
+        function scheduleNextLeaf() {
+            const now = Date.now();
+            while (leafTimestamps.length && leafTimestamps[0] < now - 60000) leafTimestamps.shift();
+            const spm = leafTimestamps.length;
+
+            if (spm < 15) {
+                leafTimeout = null;
+                return;
+            }
+
+            // sliding scale: 15spm = slow, 30spm = fast
+            const t = Math.max(0, Math.min(1, (spm - 15) / 15)); // 0 at 15spm, 1 at 30spm
+            const baseDelay = 15000 - (t * 5000); // 15s down to 10s at peak
+            const jitter = (Math.random() - 0.5) * 800; // ±400ms randomness
+            const delay = Math.max(400, baseDelay + jitter);
+
+            spawnLeaf();
+            leafTimeout = setTimeout(scheduleNextLeaf, delay);
+        }
+
+        function checkLeafState() {
+            const now = Date.now();
+            leafTimestamps.push(now);
+            if (!leafTimeout) scheduleNextLeaf();
+        }
+        // ────────────────────────────────────────────────────────
     </script>
 
     <div style="margin-top:1.5rem;font-family:'EB Garamond','Times New Roman',serif;font-size:12px;color:#aaa69e;letter-spacing:.08em;text-align:center;line-height:1.8;">
