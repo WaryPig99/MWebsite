@@ -116,11 +116,11 @@
 
     <div class="settings-row" style="margin-bottom:.5rem">
         <label>Session</label>
-        <span id="sess-full" class="sess-active" onclick="setSessionSize(0)" style="cursor:pointer;min-width:auto;text-align:left;font-weight:600">Full</span>
-        <span style="color:#c8c4bc;min-width:auto">·</span>
         <span id="sess-25" onclick="setSessionSize(25)" style="cursor:pointer;min-width:auto;text-align:left">25</span>
         <span style="color:#c8c4bc;min-width:auto">·</span>
         <span id="sess-50" onclick="setSessionSize(50)" style="cursor:pointer;min-width:auto;text-align:left">50</span>
+        <span style="color:#c8c4bc;min-width:auto">·</span>
+        <span id="sess-full" class="sess-active" onclick="setSessionSize(0)" style="cursor:pointer;min-width:auto;text-align:left;font-weight:600">Full</span>
     </div>
 
     <div class="settings-row">
@@ -181,7 +181,7 @@
         let queue = [], missed = {}, correct = 0, wrong = 0, streak = 0, current = null, total = 0, doneCount = 0;
         let drillStart = null;
         let mcVisible = false;
-        let sessionSize = 0;
+        let sessionSize = 25;
 
         // ── FACT POOL ───────────────────────────────────────────────────
         // Each fact: { a, b, op, answer, strategy }
@@ -189,15 +189,15 @@
 
         function classifySingle(a, b, op) {
             if (op === '+') {
-                if (a === b)                        return 'doubles';
-                if (a + b === 10)                   return 'bonds';
-                if (Math.abs(a - b) <= 2)           return 'near-doubles';
+                if (a === b) return 'doubles';
+                if (a + b === 10) return 'bonds';
+                if (Math.abs(a - b) <= 2) return 'near-doubles';
                 return 'recall';
             } else {
                 // subtraction: a - b
-                if (b === a / 2 && a % 2 === 0)    return 'doubles';
-                if (b + a === 10 || a === 10)       return 'bonds';
-                if (Math.abs(a - 2 * b) <= 2)      return 'near-doubles';
+                if (b === a / 2 && a % 2 === 0) return 'doubles';
+                if (b + a === 10 || a === 10) return 'bonds';
+                if (Math.abs(a - 2 * b) <= 2) return 'near-doubles';
                 return 'recall';
             }
         }
@@ -231,42 +231,42 @@
             [
                 [247, 121], [134, 253], [312, 465], [523, 241], [143, 325],
                 [231, 546], [412, 253], [321, 164], [461, 238], [143, 325],
-                [43, 25],   [67, 31],   [82, 15],   [54, 23],   [74, 25],
+                [43, 25], [67, 31], [82, 15], [54, 23], [74, 25],
             ].forEach(([a, b]) => facts.push({ a, b, op: '+', answer: a + b, strategy: 'partitioning' }));
 
             // COMPENSATING — Addition (b ends in 8 or 9)
             [
-                [134, 29],  [256, 49],  [367, 19],  [145, 39],  [423, 99],
-                [63, 29],   [47, 19],   [85, 38],   [124, 49],  [236, 99],
-                [345, 29],  [167, 19],  [243, 49],  [312, 98],  [156, 39],
+                [134, 29], [256, 49], [367, 19], [145, 39], [423, 99],
+                [63, 29], [47, 19], [85, 38], [124, 49], [236, 99],
+                [345, 29], [167, 19], [243, 49], [312, 98], [156, 39],
             ].forEach(([a, b]) => facts.push({ a, b, op: '+', answer: a + b, strategy: 'compensating' }));
 
             // DOUBLING — Addition (numbers within 4 of each other)
             [
-                [35, 37],   [64, 66],   [123, 127], [245, 249], [43, 45],
-                [78, 80],   [151, 155], [96, 98],   [212, 214], [167, 171],
-                [48, 52],   [99, 101],  [148, 152], [223, 227], [74, 76],
+                [35, 37], [64, 66], [123, 127], [245, 249], [43, 45],
+                [78, 80], [151, 155], [96, 98], [212, 214], [167, 171],
+                [48, 52], [99, 101], [148, 152], [223, 227], [74, 76],
             ].forEach(([a, b]) => facts.push({ a, b, op: '+', answer: a + b, strategy: 'doubling' }));
 
             // PARTITIONING — Subtraction (no borrowing — every digit of a > corresponding digit of b)
             [
-                [85, 22],   [349, 125], [567, 241], [76, 34],   [98, 45],
-                [467, 234], [789, 356], [654, 321], [87, 43],   [96, 52],
-                [579, 246], [348, 215], [965, 432], [74, 31],   [89, 57],
+                [85, 22], [349, 125], [567, 241], [76, 34], [98, 45],
+                [467, 234], [789, 356], [654, 321], [87, 43], [96, 52],
+                [579, 246], [348, 215], [965, 432], [74, 31], [89, 57],
             ].forEach(([a, b]) => facts.push({ a, b, op: '-', answer: a - b, strategy: 'partitioning' }));
 
             // COMPENSATING — Subtraction (b ends in 8 or 9)
             [
-                [322, 39],  [145, 29],  [256, 19],  [134, 48],  [83, 29],
-                [67, 19],   [92, 38],   [214, 99],  [363, 49],  [452, 199],
-                [176, 29],  [345, 38],  [423, 99],  [265, 49],  [183, 29],
+                [322, 39], [145, 29], [256, 19], [134, 48], [83, 29],
+                [67, 19], [92, 38], [214, 99], [363, 49], [452, 199],
+                [176, 29], [345, 38], [423, 99], [265, 49], [183, 29],
             ].forEach(([a, b]) => facts.push({ a, b, op: '-', answer: a - b, strategy: 'compensating' }));
 
             // HALVING — Subtraction (b ≈ a/2 with small whole delta; a is always even)
             [
-                [240, 123], [180, 91],  [360, 182], [500, 251], [80, 41],
-                [120, 62],  [200, 101], [300, 152], [160, 79],  [400, 203],
-                [280, 141], [140, 69],  [320, 163], [600, 301], [440, 221],
+                [240, 123], [180, 91], [360, 182], [500, 251], [80, 41],
+                [120, 62], [200, 101], [300, 152], [160, 79], [400, 203],
+                [280, 141], [140, 69], [320, 163], [600, 301], [440, 221],
             ].forEach(([a, b]) => facts.push({ a, b, op: '-', answer: a - b, strategy: 'halving' }));
 
             return facts;
@@ -285,14 +285,14 @@
         function buildMCContent(fact) {
             const { a, b, op, answer, strategy } = fact;
             const strategyName = {
-                'doubles':       'Doubles',
-                'bonds':         'Bonds to 10',
-                'near-doubles':  'Near Doubles',
-                'recall':        'Recall',
-                'partitioning':  'Partitioning',
-                'compensating':  'Compensating',
-                'doubling':      'Doubling',
-                'halving':       'Halving'
+                'doubles': 'Doubles',
+                'bonds': 'Bonds to 10',
+                'near-doubles': 'Near Doubles',
+                'recall': 'Recall',
+                'partitioning': 'Partitioning',
+                'compensating': 'Compensating',
+                'doubling': 'Doubling',
+                'halving': 'Halving'
             }[strategy] || strategy;
 
             let rows = [];
@@ -336,7 +336,7 @@
                 rows.push(`→ commit to memory`);
                 if (op === '-') rows.push(`${b} + ${answer} = ${a}`);
 
-            // ── MULTI-DIGIT STRATEGIES ─────────────────────────────────
+                // ── MULTI-DIGIT STRATEGIES ─────────────────────────────────
             } else if (strategy === 'partitioning' && op === '+') {
                 const pA = placeValues(a), pB = placeValues(b);
                 const breaks = [], sums = [];
@@ -398,9 +398,9 @@
 
             const stepsHTML = rows.map(r => `<div class="mc-step">${r}</div>`).join('');
             return `<div class="mc-strategy-label">${strategyName}</div>
-                    <hr class="mc-fact-divider">
-                    ${stepsHTML}
-                    <div class="mc-step answer">= <strong>${answer}</strong></div>`;
+                        <hr class="mc-fact-divider">
+                        ${stepsHTML}
+                        <div class="mc-step answer">= <strong>${answer}</strong></div>`;
         }
 
         // ── HINT TEXT (shown on "Show hint" click, before submission) ───

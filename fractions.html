@@ -139,11 +139,11 @@
 
     <div class="settings-row" style="margin-bottom:.5rem">
         <label>Session</label>
-        <span id="sess-full" class="sess-active" onclick="setSessionSize(0)" style="cursor:pointer;min-width:auto;text-align:left;font-weight:600">Full</span>
-        <span style="color:#c8c4bc;min-width:auto">·</span>
         <span id="sess-25" onclick="setSessionSize(25)" style="cursor:pointer;min-width:auto;text-align:left">25</span>
         <span style="color:#c8c4bc;min-width:auto">·</span>
         <span id="sess-50" onclick="setSessionSize(50)" style="cursor:pointer;min-width:auto;text-align:left">50</span>
+        <span style="color:#c8c4bc;min-width:auto">·</span>
+        <span id="sess-full" class="sess-active" onclick="setSessionSize(0)" style="cursor:pointer;min-width:auto;text-align:left;font-weight:600">Full</span>
     </div>
 
     <div class="settings-row">
@@ -205,7 +205,7 @@
         let queue = [], missed = {}, correct = 0, wrong = 0, streak = 0, current = null, total = 0, doneCount = 0;
         let drillStart = null;
         let mcVisible = false;
-        let sessionSize = 0;
+        let sessionSize = 25;
 
         function clearMC() {
             _clearTimer();
@@ -294,16 +294,16 @@
                 const bigNum = Math.round(fact.rNum * mult / fact.rDen);
                 const div = gcd(bigNum, mult);
                 return `<div class="mc-fact-row">${dec} = ${bigNum}/${mult}</div>
-                            <div class="mc-fact-row">÷ ${div}</div>
-                            <hr class="mc-fact-divider">
-                            <div class="mc-fact-row mc-fact-answer">${fact.rNum}/${fact.rDen}</div>
-                            ${visual}`;
+                                    <div class="mc-fact-row">÷ ${div}</div>
+                                    <hr class="mc-fact-divider">
+                                    <div class="mc-fact-row mc-fact-answer">${fact.rNum}/${fact.rDen}</div>
+                                    ${visual}`;
             }
             return `<div class="mc-fact-row">${fact.num} ÷ ${fact.factor} = <strong>${fact.rNum}</strong></div>
-                        <div class="mc-fact-row">${fact.den} ÷ ${fact.factor} = <strong>${fact.rDen}</strong></div>
-                        <hr class="mc-fact-divider">
-                        <div class="mc-fact-row mc-fact-answer">${fact.rNum} ${sep} ${fact.rDen}</div>
-                        ${visual}`;
+                                <div class="mc-fact-row">${fact.den} ÷ ${fact.factor} = <strong>${fact.rDen}</strong></div>
+                                <hr class="mc-fact-divider">
+                                <div class="mc-fact-row mc-fact-answer">${fact.rNum} ${sep} ${fact.rDen}</div>
+                                ${visual}`;
         }
 
         function buildPieSVG(n, d) {
