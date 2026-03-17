@@ -456,9 +456,9 @@
 
             const stepsHTML = rows.map(r => `<div class="mc-step">${r}</div>`).join('');
             return `<div class="mc-strategy-label">${strategyName}</div>
-                                    <hr class="mc-fact-divider">
-                                    ${stepsHTML}
-                                    <div class="mc-step answer">= <strong>${answer}</strong></div>`;
+                                        <hr class="mc-fact-divider">
+                                        ${stepsHTML}
+                                        <div class="mc-step answer">= <strong>${answer}</strong></div>`;
         }
 
         // ── HINT TEXT (shown on "Show hint" click, before submission) ───
@@ -687,6 +687,9 @@
 
         startFresh();
     </script>
-
+    <div style="text-align:center;margin-top:1.5rem;font-family:'EB Garamond','Times New Roman',serif;font-size:12px;color:#aaa69e;letter-spacing:.08em;">
+        <div style="margin-bottom:4px;text-transform:uppercase;">Made with AI</div>
+        <a href="https://github.com/PositiveAttempt" target="_blank" rel="noopener" style="color:#aaa69e;text-decoration:none;">PositiveAttempt</a>
+    </div>
 </body>
 </html>
