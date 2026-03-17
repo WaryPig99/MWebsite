@@ -65,7 +65,10 @@
     }
 
     // DOM refs
-    var panelEl, toggleEl, totalEl, psEl, rowRefs = [];
+    var panelEl, toggleEl, totalEl, psEl, spmEl, rowRefs = [];
+
+    var correctCount = 0;
+    var sessionStart = Date.now();
     var open = localStorage.getItem('idle_panel_open') === '1';
 
     function injectStyles() {
@@ -83,8 +86,11 @@
             '#idle-panel.on{transform:translateX(0);}',
             '#idle-total{font-family:"Libre Baskerville","Georgia",serif;font-size:28px;',
             'font-weight:700;letter-spacing:-0.5px;line-height:1;margin-bottom:0.25rem;}',
-            '#idle-ps{font-size:11px;color:#aaa69e;letter-spacing:.08em;font-style:italic;',
+            '#idle-ps{font-size:16px;color:#aaa69e;letter-spacing:.08em;font-style:italic;',
+            'margin-bottom:0.3rem;min-height:16px;}',
+            '#idle-spm{font-size:14px;color:#aaa69e;letter-spacing:.08em;font-style:italic;',
             'margin-bottom:1.4rem;min-height:16px;}',
+            'html.dark #idle-spm{color:#3a3d45;}',
             '.idle-hr{border:none;border-top:0.5px solid #e0ddd8;margin:0 0 0.8rem;}',
             '.idle-row{display:flex;align-items:baseline;padding:5px 0;',
             'border-bottom:0.5px solid #eeecea;cursor:pointer;position:relative;user-select:none;}',
@@ -149,6 +155,10 @@
         psEl = document.createElement('div');
         psEl.id = 'idle-ps';
         panelEl.appendChild(psEl);
+
+        spmEl = document.createElement('div');
+        spmEl.id = 'idle-spm';
+        panelEl.appendChild(spmEl);
 
         var hr = document.createElement('hr');
         hr.className = 'idle-hr';
@@ -246,10 +256,16 @@
         el.addEventListener('animationend', function () { el.remove(); });
     }
 
+    function getSPM() {
+        var mins = (Date.now() - sessionStart) / 60000;
+        if (mins < 0.1) return 0;
+        return (correctCount / mins).toFixed(1);
+    }
+
     function award(n) {
         state.points += n;
+        correctCount++;
         if (open) spawnFloat(n);
-
     }
 
     function updateUI() {
@@ -257,6 +273,7 @@
         totalEl.textContent = fmt(state.points);
         var rate = passiveRate();
         psEl.textContent = rate > 0 ? fmtRate(rate) : '';
+        spmEl.textContent = correctCount > 0 ? getSPM() + ' /spm' : '';
 
         rowRefs.forEach(function (ref, i) {
             ref.ownedEl.textContent = state.owned[i] || 0;
