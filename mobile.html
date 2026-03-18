@@ -581,10 +581,11 @@
 
         // ── EVENT LISTENERS ────────────────────────────────────────────────────
 
-        document.getElementById('answer-input').addEventListener('keydown', e => { if (e.key === 'Enter') submit(); });
+        window.submitAnswer = submit;
+        document.getElementById('answer-input').addEventListener('keydown', e => { if (e.key === 'Enter') window.submitAnswer(); });
         document.addEventListener('keydown', e => { if (e.key === 'Enter') return; if (mcVisible) dismissMC(); });
         document.getElementById('mc-overlay').addEventListener('click', dismissMC);
-        document.getElementById('submit-btn').addEventListener('click', submit);
+        document.getElementById('submit-btn').addEventListener('click', function() { window.submitAnswer(); });
         document.getElementById('restart-btn').addEventListener('click', startFresh);
         document.getElementById('missed-btn').addEventListener('click', drillMissed);
 
@@ -636,7 +637,6 @@
         }
         fitLayout();
 
-        window.submitAnswer = submit;
         startFresh();
     </script>
     <script src="idle.js"></script>
