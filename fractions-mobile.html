@@ -696,13 +696,14 @@
 
         // ── EVENT LISTENERS ────────────────────────────────────────────────────
 
+        window.submitAnswer = submit;
         document.getElementById('answer-num').addEventListener('keydown', e => {
             if (e.key === 'Enter') {
                 const denInp = document.getElementById('answer-den');
-                if (!denInp.value) { denInp.focus(); } else { submit(); }
+                if (!denInp.value) { denInp.focus(); } else { window.submitAnswer(); }
             }
         });
-        document.getElementById('answer-den').addEventListener('keydown', e => { if (e.key === 'Enter') submit(); });
+        document.getElementById('answer-den').addEventListener('keydown', e => { if (e.key === 'Enter') window.submitAnswer(); });
         document.addEventListener('keydown', e => { if (e.key === 'Enter') return; if (mcVisible) dismissMC(); });
 
         // Auto-advance: jump to denominator as soon as the typed numerator matches
@@ -714,7 +715,7 @@
         });
 
         document.getElementById('mc-overlay').addEventListener('click', dismissMC);
-        document.getElementById('submit-btn').addEventListener('click', submit);
+        document.getElementById('submit-btn').addEventListener('click', function() { window.submitAnswer(); });
         document.getElementById('restart-btn').addEventListener('click', startFresh);
         document.getElementById('missed-btn').addEventListener('click', drillMissed);
 
@@ -763,7 +764,6 @@
         }
         fitLayout();
 
-        window.submitAnswer = submit;
         startFresh();
     </script>
     <script src="idle.js"></script>
