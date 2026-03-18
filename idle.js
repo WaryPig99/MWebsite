@@ -171,7 +171,7 @@
         } else {
             // no enemy — drift back toward lower-centre while waiting
             fx += (CW * 0.5 - ship.x) * 0.9;
-            fy += (CH * 0.75 - ship.y) * 0.9;
+            fy += ((MOBILE ? CH * 0.35 : CH * 0.75) - ship.y) * 1.8;
         }
 
 
