@@ -357,16 +357,16 @@
                 const bigNum = Math.round(fact.rNum * mult / fact.rDen);
                 const div = gcd(bigNum, mult);
                 return `<div class="mc-fact-row">${dec} = ${bigNum}/${mult}</div>
-                                                <div class="mc-fact-row">÷ ${div}</div>
-                                                <hr class="mc-fact-divider">
-                                                <div class="mc-fact-row mc-fact-answer">${fact.rNum}/${fact.rDen}</div>
-                                                ${visual}`;
+                                                        <div class="mc-fact-row">÷ ${div}</div>
+                                                        <hr class="mc-fact-divider">
+                                                        <div class="mc-fact-row mc-fact-answer">${fact.rNum}/${fact.rDen}</div>
+                                                        ${visual}`;
             }
             return `<div class="mc-fact-row">${fact.num} ÷ ${fact.factor} = <strong>${fact.rNum}</strong></div>
-                                            <div class="mc-fact-row">${fact.den} ÷ ${fact.factor} = <strong>${fact.rDen}</strong></div>
-                                            <hr class="mc-fact-divider">
-                                            <div class="mc-fact-row mc-fact-answer">${fact.rNum} ${sep} ${fact.rDen}</div>
-                                            ${visual}`;
+                                                    <div class="mc-fact-row">${fact.den} ÷ ${fact.factor} = <strong>${fact.rDen}</strong></div>
+                                                    <hr class="mc-fact-divider">
+                                                    <div class="mc-fact-row mc-fact-answer">${fact.rNum} ${sep} ${fact.rDen}</div>
+                                                    ${visual}`;
         }
 
         function buildPieSVG(n, d) {
@@ -550,17 +550,17 @@
             const hasMissed = Object.keys(missed).length > 0;
 
             document.getElementById('done-panel').innerHTML = `
-                        <div class="done-title">${rating}</div>
-                        <div class="arcade-run">
-                            <span class="arcade-run-pct${isNewBest ? ' new-best' : ''}">${pct}%</span>
-                            <span class="arcade-run-meta">${correct} correct · ${wrong} missed · ${timeStr} · ${sessionLabel}</span>
-                        </div>
-                        <div class="done-buttons" style="margin-bottom:1.8rem">
-                            <button class="restart-btn" onclick="startFresh()">Full drill again</button>
-                            ${hasMissed ? '<button class="missed-only-btn" onclick="drillMissed()">Missed only</button>' : ''}
-                        </div>
-                        ${renderArcadePanels(hist, lb, isNewBest)}
-                    `;
+                                <div class="done-title">${rating}</div>
+                                <div class="arcade-run">
+                                    <span class="arcade-run-pct${isNewBest ? ' new-best' : ''}">${pct}%</span>
+                                    <span class="arcade-run-meta">${correct} correct · ${wrong} missed · ${timeStr} · ${sessionLabel}</span>
+                                </div>
+                                <div class="done-buttons" style="margin-bottom:1.8rem">
+                                    <button class="restart-btn" onclick="startFresh()">Full drill again</button>
+                                    ${hasMissed ? '<button class="missed-only-btn" onclick="drillMissed()">Missed only</button>' : ''}
+                                </div>
+                                ${renderArcadePanels(hist, lb, isNewBest)}
+                            `;
         }
 
         document.getElementById('answer-num').addEventListener('keydown', e => {
@@ -593,12 +593,12 @@
 
             const id = 'leaf' + Date.now() + Math.random().toString().replace('.', '');
             const style = `
-            @keyframes ${id} {
+                    @keyframes ${id} {
 0%   { transform: translateY(-40px)  translateX(0px)   rotate(-5deg); }
-            30%  { transform: translateY(30vh)   translateX(40px)  rotate(2deg);  }
-            60%  { transform: translateY(65vh)   translateX(20px)  rotate(-3deg); }
-            100% { transform: translateY(105vh)  translateX(50px)  rotate(1deg);  }
-            }
+                    30%  { transform: translateY(30vh)   translateX(40px)  rotate(2deg);  }
+                    60%  { transform: translateY(65vh)   translateX(20px)  rotate(-3deg); }
+                    100% { transform: translateY(105vh)  translateX(50px)  rotate(1deg);  }
+                    }
 `;
             const styleEl = document.createElement('style');
             styleEl.textContent = style;
@@ -609,12 +609,12 @@
             svg.setAttribute('height', '32');
             svg.setAttribute('viewBox', '0 0 18 32');
             svg.style.cssText = `
-            position: fixed;
-            top: 0;
-            left: ${x}%;
-            pointer-events: none;
-            z-index: 5;
-            animation: ${id} ${dur}ms linear forwards;
+                    position: fixed;
+                    top: 0;
+                    left: ${x}%;
+                    pointer-events: none;
+                    z-index: 5;
+                    animation: ${id} ${dur}ms linear forwards;
 `;
 
             const petals = [
@@ -671,10 +671,20 @@
 
     </script>
 
-    <div style="margin-top:1.5rem;font-family:'EB Garamond','Times New Roman',serif;font-size:12px;color:#aaa69e;letter-spacing:.08em;text-align:center;line-height:1.8;">
+    <div style="margin-top:15rem;font-family:'EB Garamond','Times New Roman',serif;font-size:12px;color:#aaa69e;letter-spacing:.08em;text-align:center;line-height:1.8;">
         <div>Made with AI</div>
         <div><a href="https://github.com/PositiveAttempt" target="_blank" rel="noopener" style="color:#aaa69e;text-decoration:none;">PositiveAttempt</a></div>
     </div>
+
+    <form action="https://www.paypal.com/donate" method="post" target="_top" style="margin-top:1rem;">
+        <input type="hidden" name="business" value="FA3KWH54X2BCU" />
+        <input type="hidden" name="no_recurring" value="0" />
+        <input type="hidden" name="item_name" value="tysm" />
+        <input type="hidden" name="currency_code" value="AUD" />
+        <input type="image" src="https://www.paypalobjects.com/en_AU/i/btn/btn_donate_SM.gif" border="0" name="submit" title="PayPal - The safer, easier way to pay online!" alt="Donate with PayPal button" />
+        <img alt="" border="0" src="https://www.paypal.com/en_AU/i/scr/pixel.gif" width="1" height="1" />
+    </form>
+
 
 </body>
 </html>
