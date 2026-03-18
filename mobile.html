@@ -207,7 +207,7 @@
             min-width: 0;
             border: 0.5px solid #c8c4bc;
             border-radius: 2px;
-            background: #fff;
+            background: rgba(255, 255, 255, 0.15);
             font-family: 'Libre Baskerville', serif;
             font-size: 30px;
             font-weight: 700;
@@ -221,8 +221,11 @@
         #answer-input:focus    { border-color: #1a1916; }
         #answer-input.correct  { border-color: #3a7d5e; color: #3a7d5e; }
         #answer-input.wrong    { border-color: #b84040; color: #b84040; }
-        html.dark #answer-input            { background: #13161a; border-color: #252830; color: #faf9f7; }
-        html.dark #answer-input:focus      { border-color: #c8c4bc; }
+        html.dark #answer-input {
+            background: rgba(19, 22, 26, 0.15);
+            border-color: #252830;
+            color: #faf9f7;
+        }        html.dark #answer-input:focus      { border-color: #c8c4bc; }
         html.dark #answer-input.correct    { border-color: #3a7d5e; color: #3a7d5e; }
         html.dark #answer-input.wrong      { border-color: #b84040; color: #b84040; }
 
