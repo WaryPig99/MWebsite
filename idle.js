@@ -14,8 +14,10 @@
     //
     // ─────────────────────────────────────────────────────────────────────────
 
-    var panelEl, toggleEl, spmEl, genBarEl, lockBtn, shipEl, enemyEl, moneyEl, canvasEl, ctx;
+    var panelEl, toggleEl, spmEl, genBarEl, lockBtn, shipEl, moneyEl, canvasEl, ctx;
 
+    var gameOver = false;
+    var gameOverEl = null;
     var correctCount = 0;
     var sessionStart = Date.now();
     var open = localStorage.getItem('idle_panel_open') === '1';
@@ -58,14 +60,23 @@
     var GEN_REGEN = 0.45;
 
 
-    //money
+    //money────────────────────────────────────────────────────────────────
     var money = parseInt(localStorage.getItem('idle_money') || '0', 10);
     var MONEY_PER_KILL = 5;
 
+    // ── armour ────────────────────────────────────────────────────────────────
+    var SHIELD_MAX = 80;
+    var ARMOUR_MAX = 20;
+    var shields = SHIELD_MAX;
+    var armour = ARMOUR_MAX;
+    var SHIELD_REGEN = 12;  // points/sec at full gen
+    var armourBarEl;
 
     // ── combat ────────────────────────────────────────────────────────────────    
     var bullets = [];
-    var enemy = null;
+    var enemies = [];  
+    var enemyBullets = [];
+    var ENEMY_FIRE_RATE = 1.8;  // seconds between shots, tune this
     var obstacles = [];
     var lastFireMs = 0;
     var enemyRespawnTimer = 0;
@@ -101,16 +112,15 @@
     }
 
     function updateEnemyDom() {
-        if (!enemyEl) return;
-        if (enemy) {
-            enemyEl.style.left = Math.round(cardLeft + enemy.x - SHIP_W / 2) + 'px';
-            enemyEl.style.right = '';
-            enemyEl.style.top = Math.round(enemy.y - SHIP_H / 2) + 'px';
-            var dark = document.documentElement.classList.contains('dark');
-            enemyEl.style.filter = enemy.flash > 0 ? (dark ? 'invert(1) brightness(2)' : 'brightness(2)') : (dark ? 'invert(1)' : 'none');
-            enemyEl.style.display = 'block';
-        } else {
-            enemyEl.style.display = 'none';
+        var dark = document.documentElement.classList.contains('dark');
+        for (var i = 0; i < enemies.length; i++) {
+            var e = enemies[i];
+            e.el.style.left = Math.round(cardLeft + e.x - SHIP_W / 2) + 'px';
+            e.el.style.top = Math.round(e.y - SHIP_H / 2) + 'px';
+            e.el.style.filter = e.flash > 0
+                ? (dark ? 'invert(1) brightness(2)' : 'brightness(2)')
+                : (dark ? 'invert(1)' : 'none');
+            e.el.style.display = 'block';
         }
     }
 
@@ -123,9 +133,11 @@
 
     // ── level / enemy spawn ───────────────────────────────────────────────────
     function spawnEnemy() {
-        var w = enemyEl.naturalWidth || 16;
-        var h = enemyEl.naturalHeight || 16;
-        enemy = {
+        var el = makeEnemyEl();
+        var w = el.naturalWidth || 16;
+        var h = el.naturalHeight || 16;
+        enemies.push({
+            el: el,
             x: CW * 0.2 + Math.random() * CW * 0.6,
             y: -SHIP_H,
             hp: 3,
@@ -133,15 +145,15 @@
             vy: 70 + scrollSpeed() * 0.25,
             phase: Math.random() * Math.PI * 2,
             flash: 0,
-            hw: w * 1.5 * SCALE,   // half-width hit radius (natural px × display scale ÷ 2)
-            hh: h * 1.5 * SCALE,   // half-height hit radius
-        };
+            lastFireMs: 0,
+            hw: w * 1.5 * SCALE,
+            hh: h * 1.5 * SCALE,
+        });
     }
 
     function spawnLevel() {
         // 1 or 2 obstacles in the middle zone
         obstacles = [];
-        spawnEnemy();
         bullets = [];
     }
 
@@ -165,13 +177,16 @@
         }
         var fx = 0, fy = 0;
 
-        if (enemy) {
+        var target = null;
+        for (var i = 0; i < enemies.length; i++) {
+            if (!target || enemies[i].y > target.y) target = enemies[i];
+        }
+        if (target) {
             var leadTime = 0.7;
-            var predictedX = enemy.x + Math.sin(enemy.phase + leadTime * 0.5) * 18 * leadTime;
+            var predictedX = target.x + Math.sin(target.phase + leadTime * 0.5) * 18 * leadTime;
             fx += (predictedX - ship.x) * 18.0;
             fy += ((MOBILE ? CH * 0.325 : CH * 0.75) - ship.y) * 1.8;
         } else {
-            // no enemy — drift back toward lower-centre while waiting
             fx += (CW * 0.5 - ship.x) * 0.9;
             fy += ((MOBILE ? CH * 0.35 : CH * 0.75) - ship.y) * 1.8;
         }
@@ -206,68 +221,111 @@
     }
 
     function tryFire(now) {
-        if (!enemy || gen <= 0) return;
-        // only fire when X-aligned with the enemy (within 36 px)
-        if (Math.abs(ship.x - enemy.x) > 36) return;
+        if (!enemies.length || gen <= 0) return;
         if (now - lastFireMs < 1000 / fireRate()) return;
-
-        bullets.push({ x: ship.x, y: ship.y - SHIP_H * 0.45, vy: -385 });
-        gen = Math.max(0, gen - GEN_COST);
+        var best = null;
+        for (var i = 0; i < enemies.length; i++) {
+            if (Math.abs(ship.x - enemies[i].x) <= 36) {
+                if (!best || enemies[i].y > best.y) best = enemies[i];
+            }
+        }
+        if (!best) return;
+        var timeToTarget = (ship.y - best.y) / 385;
+        var predictedX = best.x + Math.sin(best.phase + timeToTarget * 0.5) * 18 * timeToTarget;
+        var vx = (predictedX - ship.x) / timeToTarget;
+        bullets.push({ x: ship.x, y: ship.y - SHIP_H * 0.45, vx: vx, vy: -385 });        gen = Math.max(0, gen - GEN_COST);
         lastFireMs = now;
     }
 
+    function tryEnemyFire(now) {
+        if (flightState !== 'cruising') return;
+        for (var i = 0; i < enemies.length; i++) {
+            var e = enemies[i];
+            if (!e.lastFireMs) e.lastFireMs = now;
+            if ((now - e.lastFireMs) / 1000 < ENEMY_FIRE_RATE) continue;
+            enemyBullets.push({ x: e.x, y: e.y + SHIP_H * 0.45, vy: 320 });
+            e.lastFireMs = now;
+        }
+    }
+
     function updateCombat(now, dt) {
+        if (gameOver) return;
         if (flightState === 'grounded' || flightState === 'ignition') return;
 
         // near-zero idle drain — barely visible, so sums clearly top it up
         gen = Math.min(GEN_MAX, Math.max(0, gen - GEN_IDLE * dt + GEN_REGEN * dt));
 
+        var regenRate = SHIELD_REGEN * (gen / GEN_MAX);
+        shields = Math.min(SHIELD_MAX, shields + regenRate * dt);
+
         tryFire(now);
+        tryEnemyFire(now);
+
 
         // move bullets upward, remove when off-screen
         for (var i = bullets.length - 1; i >= 0; i--) {
+            bullets[i].x += (bullets[i].vx || 0) * dt;
             bullets[i].y += bullets[i].vy * dt;
             if (bullets[i].y < -12) bullets.splice(i, 1);
         }
 
-        if (enemy) {
-            enemy.y += enemy.vy * dt;
-            enemy.phase += dt * 0.5;
-            enemy.x += Math.sin(enemy.phase) * 18 * dt;
-            enemy.x = Math.max(CW * 0.1, Math.min(CW * 0.9, enemy.x));
-            if (enemy.flash > 0) enemy.flash -= dt;
+        // move enemy bullets downward
+        for (var i = enemyBullets.length - 1; i >= 0; i--) {
+            enemyBullets[i].y += enemyBullets[i].vy * dt;
+            if (enemyBullets[i].y > CH + 12) {
+                enemyBullets.splice(i, 1);
+                continue;
+            }
+            // hit ship?
+            var dx = enemyBullets[i].x - ship.x;
+            var dy = enemyBullets[i].y - ship.y;
+            if (Math.abs(dx) < 18 * SCALE && Math.abs(dy) < 18 * SCALE) {
+                takeDamage(10);
+                enemyBullets.splice(i, 1);
+            }
+        }
 
-            if (enemy.y > CH + SHIP_H) {
-                enemy = null;
-                enemyRespawnTimer = 1.5;
+        for (var i = enemies.length - 1; i >= 0; i--) {
+            var e = enemies[i];
+            e.y += e.vy * dt;
+            e.phase += dt * 0.5;
+            e.x += Math.sin(e.phase) * 18 * dt;
+            e.x = Math.max(CW * 0.1, Math.min(CW * 0.9, e.x));
+            if (e.flash > 0) e.flash -= dt;
+
+            if (e.y > CH + SHIP_H) {
+                e.el.remove();
+                enemies.splice(i, 1);
+                continue;
             }
 
-            // ← ADD this guard so we don't touch enemy after nulling it above
-            if (enemy) {
-                for (var j = bullets.length - 1; j >= 0; j--) {
-                    var dx = bullets[j].x - enemy.x;
-                    var dy = bullets[j].y - enemy.y;
-                    if (Math.abs(dx) < 20 * SCALE && Math.abs(dy) < 20 * SCALE) {
-                        enemy.hp--;
-                        enemy.flash = 0.14;
-                        bullets.splice(j, 1);
-                        if (enemy.hp <= 0) {
-                            var streakMult = 1 + (window.streak || 0) * 0.1;
-                            var earned = Math.round(MONEY_PER_KILL * streakMult);
-                            money += earned;
-                            localStorage.setItem('idle_money', money);
-                            if (moneyEl) moneyEl.textContent = money;
-                            if (open || locked) spawnKillFloat(enemy.x, enemy.y, earned);
-                            enemy = null;
-                            enemyRespawnTimer = 1.5;
-                            break;
-                        }
+            for (var j = bullets.length - 1; j >= 0; j--) {
+                var dx = bullets[j].x - e.x;
+                var dy = bullets[j].y - e.y;
+                if (Math.abs(dx) < 20 * SCALE && Math.abs(dy) < 20 * SCALE) {
+                    e.hp--;
+                    e.flash = 0.14;
+                    bullets.splice(j, 1);
+                    if (e.hp <= 0) {
+                        var streakMult = 1 + (window.streak || 0) * 0.1;
+                        var earned = Math.round(MONEY_PER_KILL * streakMult);
+                        money += earned;
+                        localStorage.setItem('idle_money', money);
+                        if (moneyEl) moneyEl.textContent = money;
+                        if (open || locked) spawnKillFloat(e.x, e.y, earned);
+                        e.el.remove();
+                        enemies.splice(i, 1);
+                        break;
                     }
                 }
             }
-        } else {
-            enemyRespawnTimer -= dt;
-            if (enemyRespawnTimer <= 0) spawnEnemy();
+        }
+
+        enemyRespawnTimer -= dt;
+        if (enemyRespawnTimer <= 0) {
+            if (enemies.length < 6) spawnEnemy();
+            enemyRespawnTimer = 3 + Math.random() * 7;  // 3–7 seconds
+
         }
     }
     // ── draw ──────────────────────────────────────────────────────────────────
@@ -307,6 +365,12 @@
             ctx.fillRect(bullets[i].x - 1.5 * SCALE, bullets[i].y - 5 * SCALE, 3 * SCALE, 9 * SCALE);
         }
 
+        // enemy bullets — slightly wider, same streak style
+        ctx.fillStyle = dark ? 'rgba(200,196,188,0.5)' : 'rgba(26,25,22,0.45)';
+        for (var i = 0; i < enemyBullets.length; i++) {
+            ctx.fillRect(enemyBullets[i].x - 2 * SCALE, enemyBullets[i].y - 5 * SCALE, 4 * SCALE, 9 * SCALE);
+        }
+
     }
 
     // ── gen bar ───────────────────────────────────────────────────────────────
@@ -315,6 +379,26 @@
         genBarEl.style.width = Math.max(0, (gen / GEN_MAX) * 100) + '%';
     }
 
+    function updateArmourBar() {
+        if (!armourBarEl) return;
+        var total = SHIELD_MAX + ARMOUR_MAX;
+        var filled = ((shields + armour) / total) * 100;
+        var shieldFraction = shields / (shields + armour + 0.001);
+        armourBarEl.style.width = Math.max(0, filled) + '%';
+        armourBarEl.style.background = shieldFraction > 0.05
+            ? '#1a1916'   // shields still up — normal colour
+            : '#8a4a3a';  // armour only — warmer tone as warning
+    }
+
+    function takeDamage(amount) {
+        if (gameOver) return;
+        var overflow = Math.max(0, amount - shields);
+        shields = Math.max(0, shields - amount);
+        if (overflow > 0) {
+            armour = Math.max(0, armour - overflow);
+            if (armour <= 0) triggerGameOver();
+        }
+    }
     // ── RAF loop ──────────────────────────────────────────────────────────────
     function rafLoop(now) {
         var dt = Math.min((now - lastRaf) / 1000, 0.1);
@@ -335,6 +419,8 @@
             updateShipDom();
             updateEnemyDom();  
             updateGenBar();
+            updateArmourBar();
+
         }
 
         if (open) updateUI();
@@ -346,6 +432,8 @@
     function injectStyles() {
         var s = document.createElement('style');
         s.textContent = `
+
+        /* ── toggle ────────────────────────────────────────────────────────── */
         #idle-toggle {
             position: fixed;
             bottom: 1.2rem;
@@ -362,9 +450,11 @@
             transition: color .25s;
             font-family: serif;
         }
-        #idle-toggle:hover, #idle-toggle.on { color: #8a8680; }
-        #idle-toggle.locked { font-size: 28px; }
+        #idle-toggle:hover,
+        #idle-toggle.on       { color: #8a8680; }
+        #idle-toggle.locked   { font-size: 28px; }
 
+        /* ── panel ─────────────────────────────────────────────────────────── */
         #idle-panel {
             position: fixed;
             top: 0; right: 0; bottom: 0;
@@ -384,28 +474,36 @@
         }
         #idle-panel.on { transform: translateX(0); }
 
+        /* ── spm ────────────────────────────────────────────────────────────── */
         #idle-spm {
             font-size: 32px;
             color: #aaa69e;
             letter-spacing: .08em;
             font-style: italic;
             min-height: 32px;
-            margin-bottom: 0rem;
+            margin-bottom: 0;
         }
 
-        
+        /* ── money ──────────────────────────────────────────────────────────── */
         #idle-money-label {
             font-size: 10px;
             text-transform: uppercase;
             letter-spacing: .16em;
             color: #c8c4bc;
+            margin-top: 0;
             margin-bottom: 4px;
-            margin-top: 0rem;
         }
-        #idle-money { font-size: 22px; letter-spacing: .04em; color: #1a1916; line-height: 1; margin-bottom: 1.2rem; }
+        #idle-money {
+            font-size: 22px;
+            letter-spacing: .04em;
+            color: #1a1916;
+            line-height: 1;
+            margin-bottom: 1.2rem;
+        }
         html.dark #idle-money-label { color: #3d4148; }
-        html.dark #idle-money { color: #c8c4bc; }
+        html.dark #idle-money       { color: #c8c4bc; }
 
+        /* ── gen bar ────────────────────────────────────────────────────────── */
         #idle-gen-label {
             font-size: 10px;
             text-transform: uppercase;
@@ -413,10 +511,97 @@
             color: #c8c4bc;
             margin-bottom: 10px;
         }
-        #idle-gen-track { width: 100%; height: 2px; background: #e8e4dc; overflow: hidden; }
-        #idle-gen-bar { height: 100%; width: 0%; background: #1a1916; transition: width .08s linear; }
+        #idle-gen-track {
+            width: 100%;
+            height: 2px;
+            background: #e8e4dc;
+            overflow: hidden;
+        }
+        #idle-gen-bar {
+            height: 100%;
+            width: 0%;
+            background: #1a1916;
+            transition: width .08s linear;
+        }
+        html.dark #idle-gen-label { color: #3d4148; }
+        html.dark #idle-gen-track { background: #252830; }
+        html.dark #idle-gen-bar   { background: #c8c4bc; }
 
+        /* ── armour bar ─────────────────────────────────────────────────────── */
+        #idle-armour-label {
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: .16em;
+            color: #c8c4bc;
+            margin-top: 10px;
+            margin-bottom: 10px;
+        }
+        #idle-armour-track {
+            width: 100%;
+            height: 2px;
+            background: #e8e4dc;
+            overflow: visible;
+            position: relative;
+        }
+        #idle-armour-track::after {
+            content: '';
+            position: absolute;
+            left: 20%;
+            top: -2px;
+            width: 1px;
+            height: 6px;
+            background: #c8c4bc;
+        }
+        #idle-armour-bar {
+            height: 100%;
+            width: 100%;
+            background: #1a1916;
+            transition: width .08s linear;
+        }
+        html.dark #idle-armour-label       { color: #3d4148; }
+        html.dark #idle-armour-track       { background: #252830; }
+        html.dark #idle-armour-track::after { background: #3a3d45; }
+        html.dark #idle-armour-bar         { background: #c8c4bc; }
 
+        /* ── game over ──────────────────────────────────────────────────────── */
+        #idle-gameover {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            z-index: 500;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 1.4rem;
+            pointer-events: none;
+        }
+        #idle-gameover-msg {
+            font-family: "EB Garamond","Times New Roman",serif;
+            font-size: 28px;
+            font-style: italic;
+            color: #aaa69e;
+            letter-spacing: .08em;
+        }
+        #idle-gameover-btn {
+            font-size: 10px;
+            font-family: "EB Garamond","Times New Roman",serif;
+            text-transform: uppercase;
+            letter-spacing: .16em;
+            color: #c8c4bc;
+            background: none;
+            border: 0.5px solid #e0ddd8;
+            border-radius: 1px;
+            padding: 6px 16px;
+            cursor: pointer;
+            pointer-events: all;
+            transition: color .15s, border-color .15s;
+        }
+        #idle-gameover-btn:hover              { color: #1a1916; border-color: #8a8680; }
+        html.dark #idle-gameover-msg          { color: #3a3d45; }
+        html.dark #idle-gameover-btn          { color: #3a3d45; border-color: #252830; }
+        html.dark #idle-gameover-btn:hover    { color: #c8c4bc; border-color: #6a6660; }
+
+        /* ── lock button ────────────────────────────────────────────────────── */
         #idle-lock {
             font-size: 10px;
             color: #c8c4bc;
@@ -432,11 +617,17 @@
             align-self: flex-start;
             transition: color .15s, border-color .15s;
         }
-        #idle-lock:hover, #idle-lock.on { color: #1a1916; border-color: #8a8680; }
+        #idle-lock:hover,
+        #idle-lock.on { color: #1a1916; border-color: #8a8680; }
+        html.dark #idle-lock          { color: #3a3d45; border-color: #252830; }
+        html.dark #idle-lock:hover,
+        html.dark #idle-lock.on       { color: #c8c4bc; border-color: #6a6660; }
 
-        .card { background: rgba(255,255,255,0.15) !important; backdrop-filter: none; }
-        html.dark .card { background: rgba(13,15,18,0.15) !important; }
+        /* ── card transparency ──────────────────────────────────────────────── */
+        .card            { background: rgba(255,255,255,0.15) !important; backdrop-filter: none; }
+        html.dark .card  { background: rgba(13,15,18,0.15)   !important; }
 
+        /* ── canvas ─────────────────────────────────────────────────────────── */
         #idle-canvas {
             position: fixed;
             top: 0; left: 0;
@@ -446,10 +637,10 @@
             opacity: 0;
             transition: opacity 1.2s ease;
         }
-        #idle-canvas.on { opacity: 0.5; }
-        html.dark #idle-canvas { filter: invert(1); }
+        #idle-canvas.on          { opacity: 0.2; }
+        html.dark #idle-canvas   { filter: invert(1); }
 
-
+        /* ── ship ───────────────────────────────────────────────────────────── */
         #idle-ship {
             position: fixed;
             pointer-events: none;
@@ -461,11 +652,11 @@
             image-rendering: pixelated;
             image-rendering: crisp-edges;
         }
-        #idle-ship.on { opacity: 0.95; }
-        html.dark #idle-ship { filter: invert(1); }
+        #idle-ship.on          { opacity: 0.3; }
+        html.dark #idle-ship   { filter: invert(1); }
 
-
-        #idle-enemy {
+        /* ── enemy ──────────────────────────────────────────────────────────── */
+        .idle-enemy {
             position: fixed;
             pointer-events: none;
             z-index: 2;
@@ -477,10 +668,10 @@
             image-rendering: crisp-edges;
             transform-origin: center center;
         }
-        #idle-enemy.on { opacity: 0.85; }
-        html.dark #idle-enemy { filter: invert(1); }
+        .idle-enemy.on         { opacity: 0.3; }
+        html.dark .idle-enemy  { filter: invert(1); }
 
-
+        /* ── kill float ─────────────────────────────────────────────────────── */
         @keyframes idle-kill {
             0%   { transform: translate(0px,0px)   scale(1);    opacity: 1; }
             30%  { transform: translate(2px,-18px)  scale(1.05); opacity: 1; }
@@ -500,6 +691,7 @@
         }
         html.dark .idle-float-kill { color: #c8c4bc; }
 
+        /* ── energy float ───────────────────────────────────────────────────── */
         @keyframes idle-smoke {
             0%   { transform: translate(0px,0px)     scale(1);    opacity: 1; }
             20%  { transform: translate(3px,-24px)   scale(1.03); opacity: 1; }
@@ -520,16 +712,14 @@
         }
         html.dark .idle-float { color: #4a4d55; }
 
-        html.dark #idle-panel { background: rgba(13,15,18,0.85); border-left-color: #252830; color: #c8c4bc; }
-        html.dark #idle-toggle { color: #2e3038; }
-        html.dark #idle-toggle:hover, html.dark #idle-toggle.on { color: #6a6660; }
-        html.dark #idle-spm { color: #6a6660; }
-        html.dark #idle-gen-label { color: #3d4148; }
-        html.dark #idle-gen-track { background: #252830; }
-        html.dark #idle-gen-bar { background: #c8c4bc; }
-        html.dark #idle-lock { color: #3a3d45; border-color: #252830; }
-        html.dark #idle-lock:hover, html.dark #idle-lock.on { color: #c8c4bc; border-color: #6a6660; }
+        /* ── dark panel overrides ───────────────────────────────────────────── */
+        html.dark #idle-panel   { background: rgba(13,15,18,0.85); border-left-color: #252830; color: #c8c4bc; }
+        html.dark #idle-toggle  { color: #2e3038; }
+        html.dark #idle-toggle:hover,
+        html.dark #idle-toggle.on { color: #6a6660; }
+        html.dark #idle-spm     { color: #6a6660; }
 
+        /* ── mobile topbar ──────────────────────────────────────────────────── */
         #idle-topbar-stats {
             display: flex;
             align-items: center;
@@ -557,9 +747,10 @@
             min-width: 24px;
         }
         html.dark #idle-topbar-gen-track { background: transparent; }
-        html.dark #idle-topbar-gen-bar { background: #c8c4bc; }
-        html.dark #idle-topbar-money { color: #6a6660; }
-    `;
+        html.dark #idle-topbar-gen-bar   { background: #c8c4bc; }
+        html.dark #idle-topbar-money     { color: #6a6660; }
+
+        `;
         document.head.appendChild(s);
     }
 
@@ -580,20 +771,19 @@
         if (open || locked) shipEl.classList.add('on');
     }
 
-    function buildEnemy() {
-        enemyEl = document.createElement('img');
-        enemyEl.id = 'idle-enemy';
-        enemyEl.src = 'assets/enemy1.png';
-        document.body.appendChild(enemyEl);
-        if (open || locked) enemyEl.classList.add('on');  
-
+    function makeEnemyEl() {
+        var el = document.createElement('img');
+        el.className = 'idle-enemy';
+        el.src = 'assets/enemy1.png';
+        document.body.appendChild(el);
+        if (open || locked) el.classList.add('on');
+        return el;
     }
 
     function buildDOM() {
         injectStyles();
         buildCanvas();
         buildShip();
-        buildEnemy();
         positionCanvas();
 
         ship.x = CW / 2;
@@ -670,7 +860,7 @@
 
             var genLabel = document.createElement('div');
             genLabel.id = 'idle-gen-label';
-            genLabel.textContent = 'gen';
+            genLabel.textContent = 'ϟ gen';
             panelEl.appendChild(genLabel);
 
             var genTrack = document.createElement('div');
@@ -679,6 +869,18 @@
             genBarEl.id = 'idle-gen-bar';
             genTrack.appendChild(genBarEl);
             panelEl.appendChild(genTrack);      
+
+            var armourLabel = document.createElement('div');
+            armourLabel.id = 'idle-armour-label';
+            armourLabel.textContent = '⛨ Shields';
+            panelEl.appendChild(armourLabel);
+
+            var armourTrack = document.createElement('div');
+            armourTrack.id = 'idle-armour-track';
+            armourBarEl = document.createElement('div');
+            armourBarEl.id = 'idle-armour-bar';
+            armourTrack.appendChild(armourBarEl);
+            panelEl.appendChild(armourTrack);
 
             lockBtn = document.createElement('button');
             lockBtn.id = 'idle-lock';
@@ -697,7 +899,9 @@
     function setVisible(v) {
         canvasEl.classList.toggle('on', v);
         shipEl.classList.toggle('on', v);
-        enemyEl.classList.toggle('on', v);
+        for (var i = 0; i < enemies.length; i++) {
+            enemies[i].el.classList.toggle('on', v);
+        }
     }
 
     function togglePanel() {
@@ -772,6 +976,48 @@
         if (open || locked) spawnEnergyFloat();
     }
 
+    function resetGame() {
+        gameOver = false;
+        shields = SHIELD_MAX;
+        armour = ARMOUR_MAX;
+        gen = GEN_MAX;
+        for (var i = 0; i < enemies.length; i++) enemies[i].el.remove();
+        enemies = [];
+        bullets = [];
+        enemyBullets = [];
+        enemyRespawnTimer = 17;
+        flightState = 'grounded';
+        shipEl.src = 'assets/ship.png';
+        ship.x = CW / 2;
+        ship.y = CH * 0.80;
+        ship.vx = 0; ship.vy = 0;
+        ship.worldY = CH * 0.2;
+        correctCount = 0;
+        sessionStart = Date.now();
+        if (gameOverEl) { gameOverEl.remove(); gameOverEl = null; }
+    }
+    function triggerGameOver() {
+        gameOver = true;
+        flightState = 'grounded';
+        shipEl.src = 'assets/ship.png';
+
+        gameOverEl = document.createElement('div');
+        gameOverEl.id = 'idle-gameover';
+
+        var msg = document.createElement('div');
+        msg.id = 'idle-gameover-msg';
+        msg.textContent = 'Ship destroyed.';
+        gameOverEl.appendChild(msg);
+
+        var btn = document.createElement('button');
+        btn.id = 'idle-gameover-btn';
+        btn.textContent = 'Retry?';
+        btn.addEventListener('click', resetGame);
+        gameOverEl.appendChild(btn);
+
+        document.body.appendChild(gameOverEl);
+    }
+
     function updateUI() {
         if (!spmEl) return;
         spmEl.textContent = getSPM() + '\u2009/spm';
@@ -813,27 +1059,24 @@
                 }
             }
             window.visualViewport.addEventListener('resize', updateCanvasToViewport);
-
             updateCanvasToViewport();
         }
         patchSubmitAnswer();
         spawnLevel();
-        enemy = null;
-        enemyRespawnTimer = 17;   // seconds before first enemy appears
+        enemyRespawnTimer = 17;
         ship.worldY = CH * 0.2;
         updateUI();
         lastRaf = performance.now();
         requestAnimationFrame(rafLoop);
-    });
 
-    window.addEventListener('resize', function () {
-        CH = window.innerHeight;
-        CW = Math.round(CH * (4 / 10));
-        positionCanvas();
-        if (flightState === 'grounded') {
-            ship.x = CW / 2;
-            ship.y = CH * 0.8;
-        }
+        window.addEventListener('resize', function () {
+            CH = window.innerHeight;
+            CW = Math.round(CH * (4 / 10));
+            positionCanvas();
+            if (flightState === 'grounded') {
+                ship.x = CW / 2;
+                ship.y = CH * 0.8;
+            }
+        });
     });
-
 }());
