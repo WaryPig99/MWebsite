@@ -21,10 +21,13 @@
     var open = localStorage.getItem('idle_panel_open') === '1';
     var locked = localStorage.getItem('idle_locked') === '1';
 
+    var MOBILE = window.innerWidth < 768;
+    var SCALE = MOBILE ? 0.5 : 1;
+
     var PANEL_W = 216;
     var CANVAS_GAP = 50;
-    var SHIP_W = 48;
-    var SHIP_H = 64;
+    var SHIP_W = 48 * SCALE;
+    var SHIP_H = 64 * SCALE;
     var CH = window.innerHeight;
     var CW = Math.round(CH * (4 / 10));
     var cardLeft = 0;   
@@ -127,8 +130,8 @@
             vy: 70 + scrollSpeed() * 0.25,
             phase: Math.random() * Math.PI * 2,
             flash: 0,
-            hw: w * 1.5,   // half-width hit radius (natural px × display scale ÷ 2)
-            hh: h * 1.5,   // half-height hit radius
+            hw: w * 1.5 * SCALE,   // half-width hit radius (natural px × display scale ÷ 2)
+            hh: h * 1.5 * SCALE,   // half-height hit radius
         };
     }
 
@@ -173,7 +176,7 @@
 
 
         // canvas boundary forces
-        var m = 38;
+        var m = 38 * SCALE;
         if (ship.x < m) fx += (m - ship.x) * 4;
         if (ship.x > CW - m) fx += (CW - m - ship.x) * 4;
         if (ship.y < m) fy += (m - ship.y) * 4;
@@ -241,7 +244,7 @@
                 for (var j = bullets.length - 1; j >= 0; j--) {
                     var dx = bullets[j].x - enemy.x;
                     var dy = bullets[j].y - enemy.y;
-                    if (Math.abs(dx) < 20 && Math.abs(dy) < 20) {
+                    if (Math.abs(dx) < 20 * SCALE && Math.abs(dy) < 20 * SCALE) {
                         enemy.hp--;
                         enemy.flash = 0.14;
                         bullets.splice(j, 1);
@@ -298,7 +301,7 @@
         // bullets — thin vertical streaks
         ctx.fillStyle = dark ? 'rgba(200,196,188,0.9)' : 'rgba(26,25,22,0.85)';
         for (var i = 0; i < bullets.length; i++) {
-            ctx.fillRect(bullets[i].x - 1.5, bullets[i].y - 5, 3, 9);
+            ctx.fillRect(bullets[i].x - 1.5 * SCALE, bullets[i].y - 5 * SCALE, 3 * SCALE, 9 * SCALE);
         }
 
     }
@@ -444,7 +447,7 @@
             position: fixed;
             pointer-events: none;
             z-index: 3;
-            width: 48px;
+            width: ${48 * SCALE}px;
             height: auto;
             opacity: 0;
             transition: opacity 1.4s ease;
@@ -457,7 +460,7 @@
             position: fixed;
             pointer-events: none;
             z-index: 2;
-            width: 48px;
+            width: ${48 * SCALE}px;
             height: auto;
             opacity: 0;
             transition: opacity 1.4s ease;
@@ -712,6 +715,18 @@
     // ── init ──────────────────────────────────────────────────────────────────
     window.addEventListener('DOMContentLoaded', function () {
         buildDOM();
+        if (MOBILE && window.visualViewport) {
+            function updateCanvasToViewport() {
+                var vv = window.visualViewport;
+                CH = Math.round(vv.height);
+                canvasEl.height = CH;
+                canvasEl.style.height = CH + 'px';
+                positionCanvas();
+            }
+            window.visualViewport.addEventListener('resize', updateCanvasToViewport);
+            window.visualViewport.addEventListener('scroll', updateCanvasToViewport);
+            updateCanvasToViewport();
+        }
         patchSubmitAnswer();
         spawnLevel();
         enemy = null;
