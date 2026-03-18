@@ -36,13 +36,13 @@
     imgNear.src = 'assets/sea-near.png';
 
     // ── scroll ────────────────────────────────────────────────────────────────
-    var scrollFar = 0;
-    var scrollNear = 0;
+
     var lastRaf = performance.now();
 
     // ── flight ────────────────────────────────────────────────────────────────
     var flightState = 'grounded';
-    var ship = { x: 0, y: 0, vx: 0, vy: 0 };
+    var ship = { x: 0, y: 0, vx: 0, vy: 0, worldY: 0 };
+
 
     // ── generator — energy = bullets ─────────────────────────────────────────
     //   correct answer tops it up, each bullet fired drains it,
@@ -249,15 +249,32 @@
         }
     }
     // ── draw ──────────────────────────────────────────────────────────────────
-    function drawTiledImage(img, offset) {
-        if (!img.complete || !img.naturalWidth) return;
+    function drawSeaFar() {
+        if (!imgFar.complete || !imgFar.naturalWidth) return;
+        var cameraTop = ship.worldY - CH * 0.75;
+        var nearScreenY = Math.round(-cameraTop);
+        var clipH = nearScreenY > 0 ? Math.min(nearScreenY, CH) : CH;
+
+        ctx.save();
+        ctx.beginPath();
+        ctx.rect(0, 0, CW, clipH);
+        ctx.clip();
+        var offset = cameraTop * 0.45;
         var startY = -(offset % SEA_TILE_H);
         if (startY > 0) startY -= SEA_TILE_H;
-        for (var y = startY; y < CH; y += SEA_TILE_H) {
-            ctx.drawImage(img, 0, y, CW, SEA_TILE_H);
+        for (var y = startY; y < clipH; y += SEA_TILE_H) {
+            ctx.drawImage(imgFar, 0, y, CW, SEA_TILE_H);
         }
+        ctx.restore();
     }
 
+    function drawSeaNear() {
+        if (!imgNear.complete || !imgNear.naturalWidth) return;
+        var cameraTop = ship.worldY - CH * 0.75;
+        var screenY = Math.round(-cameraTop);
+        if (screenY >= CH || screenY + SEA_TILE_H <= 0) return;
+        ctx.drawImage(imgNear, 0, screenY, CW, SEA_TILE_H);
+    }
     function drawCombat() {
         if (flightState === 'grounded') return;
         var dark = document.documentElement.classList.contains('dark');
@@ -304,16 +321,16 @@
         lastRaf = now;
 
         var spd = scrollSpeed();
-        scrollFar -= spd * 0.45 * dt;
-        scrollNear -= spd * 1.00 * dt;
+        if (flightState !== 'grounded') ship.worldY -= spd * dt;
+
 
         steer(dt);
         updateCombat(now, dt);
 
         if (open || locked) {
             ctx.clearRect(0, 0, CW, CH);
-            drawTiledImage(imgFar, scrollFar);
-            drawTiledImage(imgNear, scrollNear);
+            drawSeaFar();
+            drawSeaNear();
             drawCombat();
             updateShipDom();
             updateEnemyDom();  
@@ -434,9 +451,9 @@
         buildEnemy();
         positionCanvas();
 
-        // start ship grounded at bottom-centre of canvas
         ship.x = CW / 2;
-        ship.y = CH * 0.80;
+        ship.y = CH * 0.95;
+        ship.worldY = CH * 0.25; 
         updateShipDom();
 
         toggleEl = document.createElement('button');
@@ -573,6 +590,7 @@
         spawnLevel();
         enemy = null;
         enemyRespawnTimer = 17;   // seconds before first enemy appears
+        ship.worldY = CH * 0.25;
         updateUI();
         lastRaf = performance.now();
         requestAnimationFrame(rafLoop);
@@ -584,7 +602,7 @@
         positionCanvas();
         if (flightState === 'grounded') {
             ship.x = CW / 2;
-            ship.y = CH * 0.80;
+            ship.y = CH * 0.8;
         }
     });
 
