@@ -100,7 +100,7 @@
     function scrollSpeed() {
         if (flightState === 'grounded') return 0;
         var spm = parseFloat(getSPM()) || 0;
-        return 5 + Math.min(spm * 20, 400);
+        return 5 + Math.min(spm * 20, 150);
     }
 
     // ── level / enemy spawn ───────────────────────────────────────────────────
