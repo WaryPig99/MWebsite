@@ -16,6 +16,8 @@ visual feedback hopefully builds connection faster.
 includes a 'moron checker' that flashes up a times table with alpha in front of your face for
 for the specified amount of time. Or if you get a question wrong.
 
+it's also got an 'idle' game mode if you press the bottom right button. Turn it off again by pressing the button again.
+
 you really dont need to donate because it was built i claude i
 just put it here but if you want to like cheers thanks man
 
