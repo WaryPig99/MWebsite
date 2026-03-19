@@ -14,7 +14,7 @@
     //
     // ─────────────────────────────────────────────────────────────────────────
 
-    var panelEl, toggleEl, spmEl, genBarEl, armourBarEl, lockBtn, shipEl, enemyEl, moneyEl, canvasEl, ctx;
+    var panelEl, toggleEl, spmEl, genBarEl, armourBarEl, lockBtn, shipEl, enemyEl, moneyEl, canvasEl, ctx, secondarySlotEl;
     var mobileGenEl, mobileShieldsEl, mobileProgFill, drawerEl, drawerShipEl;
 
     var correctCount = 0;
@@ -33,7 +33,7 @@
     var SHIP_H = 64 * SCALE;
     var CH = window.innerHeight;
     var CW = Math.round(CH * (4 / 10));
-    var cardLeft = 0;   
+    var cardLeft = 0;
     var SEA_TILE_H = 400;
 
     var imgFar = new Image();
@@ -53,12 +53,17 @@
     // ── generator — energy = bullets ─────────────────────────────────────────
     //   correct answer tops it up, each bullet fired drains it,
     //   barely ticks down when idle so you can see sums refilling it
-    var gen = 0;
-    var shields = 100;
-    var GEN_MAX = 100;
-    var GEN_AWARD = 28;   // per correct answer
-    var GEN_COST = 1;    // per bullet fired
-    var GEN_IDLE = 0.3;  // per second passive drain (near-zero)
+    var _cfg = (typeof IDLE_CONFIG !== 'undefined') ? IDLE_CONFIG : {};
+    var _gen = _cfg.gen || {};
+    var _sh = _cfg.shields || {};
+    var _arm = _cfg.armour || {};
+    var _en = _cfg.enemy || {};
+
+    var GEN_MAX = _gen.max !== undefined ? _gen.max : 100;
+    var gen = GEN_MAX;
+    var GEN_AWARD = _gen.award !== undefined ? _gen.award : 28;
+    var GEN_COST = _gen.shotCost !== undefined ? _gen.shotCost : 1;
+    var GEN_IDLE = _gen.idleDrain !== undefined ? _gen.idleDrain : 0.3;
 
     //money
     var money = parseInt(localStorage.getItem('idle_money') || '0', 10);
@@ -66,24 +71,49 @@
 
     // ── WEAPONS & GENERATORS ──────────────────────────────────────────────────
     var WEAPONS = {
-        vulcan:  { name: 'Vulcan',  slot: 'primary',   damage: 1, genCost: 1 },
-        missile: { name: 'Missile', slot: 'secondary',  damage: 8, genCost: 6 },
+        vulcan: { name: 'Vulcan', slot: 'primary', damage: 1, genCost: 1 },
+        missile: { name: 'Missile', slot: 'secondary', damage: 8, genCost: 6 },
     };
     var GENERATORS = {
         basicGenerator: { name: 'Basic Generator', regenRate: 0.5 },
     };
 
     // Weapon / generator slot state
-    var primaryWeapon   = WEAPONS.vulcan;
+    var primaryWeapon = WEAPONS.vulcan;
     var secondaryWeapon = null;
-    var tertiaryWeapon  = null;
-    var rearWeapon      = null;
-    var generatorSlot   = GENERATORS.basicGenerator;
+    var tertiaryWeapon = null;
+    var rearWeapon = null;
+    var generatorSlot = GENERATORS.basicGenerator;
 
+    // ── shields / armour ──────────────────────────────────────────────────────
+    var SHIELD_MAX = _sh.max !== undefined ? _sh.max : 80;
+    var ARMOUR_MAX = _arm.max !== undefined ? _arm.max : 20;
+    var shields = SHIELD_MAX;
+    var armour = ARMOUR_MAX;
+    var SHIELD_REGEN = _sh.regen !== undefined ? _sh.regen : 12;
+    var SHIELD_REGEN_GEN_COST = _sh.regenGenCost !== undefined ? _sh.regenGenCost : 0;
+    var SHIELD_REGEN_DELAY = _sh.regenDelay !== undefined ? _sh.regenDelay : 0;
+    var lastHitTime = 0;
 
-    // ── combat ────────────────────────────────────────────────────────────────    
+    // ── enemy config from config.js ───────────────────────────────────────────
+    var ENEMY_TYPE1_HP = _en.type1Hp !== undefined ? _en.type1Hp : 3;
+    var ENEMY_TYPE2_HP = _en.type2Hp !== undefined ? _en.type2Hp : 6;
+    var ENEMY_INITIAL_DELAY = _en.initialSpawnDelay !== undefined ? _en.initialSpawnDelay : 17;
+    var ENEMY_RESET_DELAY = _en.resetSpawnDelay !== undefined ? _en.resetSpawnDelay : 1.5;
+
+    // ── missile purchase ──────────────────────────────────────────────────────
+    var MISSILE_PRICE = 500;
+    // secondaryWeapon set to { cooldown, timer, _last } when purchased
+
+    // ── combat ────────────────────────────────────────────────────────────────
     var bullets = [];
-    var enemy = null;
+    var missiles = [];
+    var enemyBullets = [];
+    var ENEMY_FIRE_RATE = 1.8;
+    // ── multiple enemies ──────────────────────────────────────────────────────
+    var enemies = [];
+    var enemySpawnCount = 0;
+    var MAX_ENEMIES = 3;
     var obstacles = [];
     var lastFireMs = 0;
     var enemyRespawnTimer = 0;
@@ -119,18 +149,17 @@
     }
 
     function updateEnemyDom() {
-        if (!enemyEl) return;
-        if (enemy) {
-            enemyEl.style.left = Math.round(cardLeft + enemy.x - SHIP_W / 2) + 'px';
-            enemyEl.style.right = '';
-            enemyEl.style.top = Math.round(enemy.y - SHIP_H / 2) + 'px';
+        for (var i = 0; i < enemies.length; i++) {
+            var e = enemies[i];
+            if (!e.el) continue;
+            e.el.style.left = Math.round(cardLeft + e.x - SHIP_W / 2) + 'px';
+            e.el.style.right = '';
+            e.el.style.top = Math.round(e.y - SHIP_H / 2) + 'px';
             var darkMode = document.documentElement.classList.contains('dark');
             var baseFilter = darkMode ? 'invert(1)' : '';
-            enemyEl.style.filter = enemy.flash > 0
+            e.el.style.filter = e.flash > 0
                 ? (baseFilter ? baseFilter + ' brightness(2)' : 'brightness(2)')
-                : (baseFilter || 'none');            enemyEl.style.display = 'block';
-        } else {
-            enemyEl.style.display = 'none';
+                : (baseFilter || 'none');
         }
     }
 
@@ -141,28 +170,65 @@
         return 5 + Math.min(spm * 20, 150);
     }
 
+    // ── nearest enemy helper ──────────────────────────────────────────────────
+    function nearestEnemy() {
+        var best = null, bestD = Infinity;
+        for (var i = 0; i < enemies.length; i++) {
+            var e = enemies[i];
+            var d = Math.abs(e.x - ship.x) + Math.abs(e.y - ship.y);
+            if (d < bestD) { bestD = d; best = e; }
+        }
+        return best;
+    }
+
+    // ── kill enemy helper ─────────────────────────────────────────────────────
+    function killEnemy(e, i) {
+        if (e.el) { e.el.remove(); }
+        enemies.splice(i, 1);
+    }
+
+    // ── create sprite element for a spawned enemy ─────────────────────────────
+    function createEnemySpriteEl() {
+        var el = document.createElement('img');
+        el.src = 'assets/enemy1.png';
+        el.style.cssText = 'position:fixed;pointer-events:none;z-index:2;width:' + SHIP_W + 'px;height:auto;opacity:0;image-rendering:pixelated;image-rendering:crisp-edges;transform-origin:center center;transition:opacity 1.4s ease';
+        document.body.appendChild(el);
+        if (open || locked) el.style.opacity = '0.85';
+        return el;
+    }
+
     // ── level / enemy spawn ───────────────────────────────────────────────────
     function spawnEnemy() {
+        var isHeavy = (enemySpawnCount % 3 === 2);
+        var hp = isHeavy ? ENEMY_TYPE2_HP : ENEMY_TYPE1_HP;
+        var el = createEnemySpriteEl();
         var w = enemyEl.naturalWidth || 16;
         var h = enemyEl.naturalHeight || 16;
-        enemy = {
+        enemies.push({
             x: CW * 0.2 + Math.random() * CW * 0.6,
             y: -SHIP_H,
-            hp: 3,
-            maxHp: 3,
+            hp: hp,
+            maxHp: hp,
             vy: 70 + scrollSpeed() * 0.25,
             phase: Math.random() * Math.PI * 2,
             flash: 0,
-            hw: w * 1.5 * SCALE,   // half-width hit radius (natural px × display scale ÷ 2)
-            hh: h * 1.5 * SCALE,   // half-height hit radius
-        };
+            hw: w * 1.5 * SCALE,
+            hh: h * 1.5 * SCALE,
+            el: el,
+        });
+        enemySpawnCount++;
     }
 
     function spawnLevel() {
-        // 1 or 2 obstacles in the middle zone
         obstacles = [];
+        for (var i = 0; i < enemies.length; i++) {
+            if (enemies[i].el) enemies[i].el.remove();
+        }
+        enemies = [];
         spawnEnemy();
         bullets = [];
+        missiles = [];
+        enemyBullets = [];
     }
 
     // ── steering — 2D vector forces ───────────────────────────────────────────
@@ -185,9 +251,10 @@
         }
         var fx = 0, fy = 0;
 
-        if (enemy) {
+        var target = nearestEnemy();
+        if (target) {
             var leadTime = 0.7;
-            var predictedX = enemy.x + Math.sin(enemy.phase + leadTime * 0.5) * 18 * leadTime;
+            var predictedX = target.x + Math.sin(target.phase + leadTime * 0.5) * 18 * leadTime;
             fx += (predictedX - ship.x) * 18.0;
             fy += (CH * 0.75 - ship.y) * 1.8;
         } else {
@@ -195,8 +262,6 @@
             fx += (CW * 0.5 - ship.x) * 0.9;
             fy += (CH * 0.75 - ship.y) * 0.9;
         }
-
-
 
         // canvas boundary forces
         var m = 38 * SCALE;
@@ -226,9 +291,10 @@
     }
 
     function tryFire(now) {
-        if (!enemy || gen <= 0) return;
-        // only fire when X-aligned with the enemy (within 36 px)
-        if (Math.abs(ship.x - enemy.x) > 36) return;
+        var target = nearestEnemy();
+        if (!target || gen <= 0) return;
+        // only fire when X-aligned with the nearest enemy (within 36 px)
+        if (Math.abs(ship.x - target.x) > 36) return;
         if (now - lastFireMs < 1000 / fireRate()) return;
 
         bullets.push({ x: ship.x, y: ship.y - SHIP_H * 0.45, vy: -385 });
@@ -236,13 +302,159 @@
         lastFireMs = now;
     }
 
+    // ── secondary weapon: missile ─────────────────────────────────────────────
+    function tryFireSecondary(now) {
+        if (!secondaryWeapon) return;
+        var target = nearestEnemy();
+        if (!target || gen <= 0) return;
+        if (flightState !== 'cruising') return;
+
+        secondaryWeapon.timer -= (now - (secondaryWeapon._last || now)) / 1000;
+        secondaryWeapon._last = now;
+        if (secondaryWeapon.timer > 0) return;
+
+        var offsets = [-10, 10];
+        for (var o = 0; o < offsets.length; o++) {
+            missiles.push({
+                x: ship.x + offsets[o] * SCALE,
+                y: ship.y - SHIP_H * 0.3,
+                vx: 0, vy: 0,
+                target: target,
+                phase: 'eject',
+                age: 0,
+                angle: Math.atan2(target.y - ship.y, target.x - ship.x),
+                ejectOffset: offsets[o],
+                launchDelay: o * 0.05,
+                trail: [],
+            });
+        }
+        secondaryWeapon.timer = secondaryWeapon.cooldown;
+        gen = Math.max(0, gen - GEN_COST * 4);
+    }
+
+    // ── missile physics ───────────────────────────────────────────────────────
+    function updateMissiles(dt) {
+        for (var i = missiles.length - 1; i >= 0; i--) {
+            var m = missiles[i];
+            m.age += dt;
+
+            m.trail.push({ x: m.x, y: m.y, age: 0 });
+            for (var t = m.trail.length - 1; t >= 0; t--) {
+                m.trail[t].age += dt;
+                if (m.trail[t].age > 0.35) m.trail.splice(t, 1);
+            }
+
+            if (m.launchDelay > 0) { m.launchDelay -= dt; continue; }
+
+            if (m.phase === 'eject') {
+                m.x += (m.ejectOffset > 0 ? 1 : -1) * 28 * SCALE * dt;
+                m.y += -8 * SCALE * dt;
+                if (m.target && m.target.hp > 0) m.angle = Math.atan2(m.target.y - m.y, m.target.x - m.x);
+                if (m.age > 0.15) { m.phase = 'hang'; m.age = 0; }
+
+            } else if (m.phase === 'hang') {
+                m.x += (m.ejectOffset > 0 ? 1 : -1) * 4 * SCALE * dt;
+                m.y += 2 * SCALE * dt;
+                if (m.target && m.target.hp > 0) m.angle = Math.atan2(m.target.y - m.y, m.target.x - m.x);
+                if (m.age > 0.12) { m.phase = 'lock'; m.age = 0; }
+
+            } else if (m.phase === 'lock') {
+                var spd = Math.min(60 + m.age * 100, 620);
+                if (!m.target || m.target.hp <= 0) {
+                    m.x += Math.cos(m.angle) * spd * dt;
+                    m.y += Math.sin(m.angle) * spd * dt;
+                } else {
+                    var ddx = m.target.x - m.x;
+                    var ddy = m.target.y - m.y;
+                    var targetAngle = Math.atan2(ddy, ddx);
+                    var da = targetAngle - m.angle;
+                    while (da > Math.PI) da -= Math.PI * 2;
+                    while (da < -Math.PI) da += Math.PI * 2;
+                    m.angle += da * Math.min(6 * dt * 8, 1);
+                    m.vx = Math.cos(m.angle) * spd;
+                    m.vy = Math.sin(m.angle) * spd;
+                    m.x += m.vx * dt;
+                    m.y += m.vy * dt;
+                }
+            }
+
+            if (m.y < -80 || m.y > CH + 80 || m.x < -80 || m.x > CW + 80) {
+                missiles.splice(i, 1); continue;
+            }
+
+            if (m.target && m.target.hp > 0) {
+                var hdx = m.x - m.target.x;
+                var hdy = m.y - m.target.y;
+                if (Math.abs(hdx) < 22 * SCALE && Math.abs(hdy) < 22 * SCALE) {
+                    m.target.hp -= 3;
+                    m.target.flash = 0.2;
+                    if (m.target.hp <= 0) {
+                        var streakMult = 1 + (window.streak || 0) * 0.1;
+                        var earned = Math.round(MONEY_PER_KILL * streakMult);
+                        money += earned;
+                        localStorage.setItem('idle_money', money);
+                        if (moneyEl) moneyEl.textContent = money;
+                        if (open || locked) spawnKillFloat(m.target.x, m.target.y, earned);
+                        var ti = enemies.indexOf(m.target);
+                        if (ti !== -1) killEnemy(m.target, ti);
+                    }
+                    missiles.splice(i, 1); continue;
+                }
+            }
+        }
+    }
+
+    // ── enemy fire ────────────────────────────────────────────────────────────
+    function tryEnemyFire(now) {
+        if (flightState !== 'cruising') return;
+        for (var i = 0; i < enemies.length; i++) {
+            var e = enemies[i];
+            if (!e.lastFireMs) e.lastFireMs = now;
+            if ((now - e.lastFireMs) / 1000 < ENEMY_FIRE_RATE) continue;
+            enemyBullets.push({ x: e.x, y: e.y + SHIP_H * 0.45, vy: 320 });
+            e.lastFireMs = now;
+        }
+    }
+
+    function takeDamage(amount) {
+        var overflow = Math.max(0, amount - shields);
+        shields = Math.max(0, shields - amount);
+        armour = Math.max(0, armour - overflow);
+        lastHitTime = Date.now() / 1000;
+    }
+
     function updateCombat(now, dt) {
         if (flightState === 'grounded' || flightState === 'ignition') return;
+
+        // shield regen — respects regenDelay and drains gen at regenGenCost
+        var nowSec = Date.now() / 1000;
+        if (nowSec - lastHitTime >= SHIELD_REGEN_DELAY) {
+            var regenAmt = SHIELD_REGEN * (gen / GEN_MAX) * dt;
+            var regenCost = SHIELD_REGEN_GEN_COST * dt;
+            if (shields < SHIELD_MAX) {
+                shields = Math.min(SHIELD_MAX, shields + regenAmt);
+                if (regenCost > 0) gen = Math.max(0, gen - regenCost);
+            }
+        }
 
         // near-zero idle drain — barely visible, so sums clearly top it up
         gen = Math.max(0, gen - GEN_IDLE * dt);
 
         tryFire(now);
+        tryFireSecondary(now);
+        tryEnemyFire(now);
+
+        // move enemy bullets down, hit test against ship
+        for (var ei = enemyBullets.length - 1; ei >= 0; ei--) {
+            enemyBullets[ei].y += enemyBullets[ei].vy * dt;
+            if (enemyBullets[ei].y > CH + 12) { enemyBullets.splice(ei, 1); continue; }
+            var edx = enemyBullets[ei].x - ship.x;
+            var edy = enemyBullets[ei].y - ship.y;
+            if (Math.abs(edx) < 18 * SCALE && Math.abs(edy) < 18 * SCALE) {
+                takeDamage(10);
+                enemyBullets.splice(ei, 1);
+            }
+        }
 
         // move bullets upward, remove when off-screen
         for (var i = bullets.length - 1; i >= 0; i--) {
@@ -250,45 +462,53 @@
             if (bullets[i].y < -12) bullets.splice(i, 1);
         }
 
-        if (enemy) {
-            enemy.y += enemy.vy * dt;
-            enemy.phase += dt * 0.5;
-            enemy.x += Math.sin(enemy.phase) * 18 * dt;
-            enemy.x = Math.max(CW * 0.1, Math.min(CW * 0.9, enemy.x));
-            if (enemy.flash > 0) enemy.flash -= dt;
+        // ── update each enemy ─────────────────────────────────────────────────
+        for (var ei2 = enemies.length - 1; ei2 >= 0; ei2--) {
+            var e = enemies[ei2];
+            e.y += e.vy * dt;
+            e.phase += dt * 0.5;
+            e.x += Math.sin(e.phase) * 18 * dt;
+            e.x = Math.max(CW * 0.1, Math.min(CW * 0.9, e.x));
+            if (e.flash > 0) e.flash -= dt;
 
-            if (enemy.y > CH + SHIP_H) {
-                enemy = null;
-                enemyRespawnTimer = 1.5;
+            // scrolled off bottom
+            if (e.y > CH + SHIP_H) {
+                killEnemy(e, ei2);
+                continue;
             }
 
-            // ← ADD this guard so we don't touch enemy after nulling it above
-            if (enemy) {
-                for (var j = bullets.length - 1; j >= 0; j--) {
-                    var dx = bullets[j].x - enemy.x;
-                    var dy = bullets[j].y - enemy.y;
-                    if (Math.abs(dx) < 20 * SCALE && Math.abs(dy) < 20 * SCALE) {
-                        enemy.hp--;
-                        enemy.flash = 0.14;
-                        bullets.splice(j, 1);
-                        if (enemy.hp <= 0) {
-                            var streakMult = 1 + (window.streak || 0) * 0.1;
-                            var earned = Math.round(MONEY_PER_KILL * streakMult);
-                            money += earned;
-                            localStorage.setItem('idle_money', money);
-                            if (moneyEl) moneyEl.textContent = money;
-                            if (open || locked) spawnKillFloat(enemy.x, enemy.y, earned);
-                            enemy = null;
-                            enemyRespawnTimer = 1.5;
-                            break;
-                        }
+            // bullet hit test against this enemy
+            for (var j = bullets.length - 1; j >= 0; j--) {
+                var dx = bullets[j].x - e.x;
+                var dy = bullets[j].y - e.y;
+                if (Math.abs(dx) < 20 * SCALE && Math.abs(dy) < 20 * SCALE) {
+                    e.hp--;
+                    e.flash = 0.14;
+                    bullets.splice(j, 1);
+                    if (e.hp <= 0) {
+                        var streakMult = 1 + (window.streak || 0) * 0.1;
+                        var earned = Math.round(MONEY_PER_KILL * streakMult);
+                        money += earned;
+                        localStorage.setItem('idle_money', money);
+                        if (moneyEl) moneyEl.textContent = money;
+                        if (open || locked) spawnKillFloat(e.x, e.y, earned);
+                        killEnemy(e, ei2);
+                        break;
                     }
                 }
             }
-        } else {
-            enemyRespawnTimer -= dt;
-            if (enemyRespawnTimer <= 0) spawnEnemy();
         }
+
+        // spawn new enemies up to MAX_ENEMIES
+        if (enemies.length < MAX_ENEMIES) {
+            enemyRespawnTimer -= dt;
+            if (enemyRespawnTimer <= 0) {
+                spawnEnemy();
+                enemyRespawnTimer = ENEMY_RESET_DELAY + Math.random() * 2;
+            }
+        }
+
+        updateMissiles(dt);
     }
     // ── draw ──────────────────────────────────────────────────────────────────
     function drawSeaFar() {
@@ -327,12 +547,69 @@
             ctx.fillRect(bullets[i].x - 1.5 * SCALE, bullets[i].y - 5 * SCALE, 3 * SCALE, 9 * SCALE);
         }
 
+        // enemy bullets — slightly wider, dimmer
+        ctx.fillStyle = dark ? 'rgba(200,196,188,0.5)' : 'rgba(26,25,22,0.45)';
+        for (var i = 0; i < enemyBullets.length; i++) {
+            ctx.fillRect(enemyBullets[i].x - 2 * SCALE, enemyBullets[i].y - 5 * SCALE, 4 * SCALE, 9 * SCALE);
+        }
+
+        // missiles
+        for (var i = 0; i < missiles.length; i++) {
+            var m = missiles[i];
+
+            for (var t = 0; t < m.trail.length; t++) {
+                var tf = 1 - (m.trail[t].age / 0.35);
+                ctx.globalAlpha = tf * (m.phase === 'lock' ? 0.55 : 0.18);
+                var ts = (m.phase === 'lock' ? 2.5 : 1.5) * tf * SCALE;
+                ctx.fillStyle = dark ? '#c8c4bc' : '#1a1916';
+                ctx.beginPath();
+                ctx.arc(m.trail[t].x, m.trail[t].y, ts, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            ctx.globalAlpha = 1;
+
+            ctx.save();
+            ctx.translate(m.x, m.y);
+            ctx.rotate(m.angle + Math.PI / 2);
+            ctx.globalAlpha = m.phase === 'eject' ? 0.5 : m.phase === 'hang' ? 0.65 : 0.85;
+            ctx.fillStyle = dark ? '#c8c4bc' : '#1a1916';
+
+            var bw = 2 * SCALE, bh = 7 * SCALE;
+            ctx.fillRect(-bw / 2, -bh, bw, bh + 4 * SCALE);
+            ctx.beginPath();
+            ctx.moveTo(-bw / 2, -bh);
+            ctx.lineTo(0, -bh - 5 * SCALE);
+            ctx.lineTo(bw / 2, -bh);
+            ctx.fill();
+
+            if (m.phase === 'lock') {
+                ctx.globalAlpha = 0.4 + Math.random() * 0.3;
+                ctx.fillStyle = dark ? '#e8e4dc' : '#6a6660';
+                ctx.fillRect(-bw / 2, 4 * SCALE, bw, (3 + Math.random() * 4) * SCALE);
+            }
+
+            ctx.globalAlpha = 1;
+            ctx.restore();
+        }
+
     }
 
     // ── gen bar ───────────────────────────────────────────────────────────────
     function updateGenBar() {
         if (!genBarEl) return;
         genBarEl.style.width = Math.max(0, (gen / GEN_MAX) * 100) + '%';
+    }
+
+    function updateArmourBar() {
+        if (!armourBarEl) return;
+        var total = SHIELD_MAX + ARMOUR_MAX;
+        var filled = ((shields + armour) / total) * 100;
+        var shieldFraction = shields / (shields + armour + 0.001);
+        armourBarEl.style.width = Math.max(0, filled) + '%';
+        var dark = document.documentElement.classList.contains('dark');
+        armourBarEl.style.background = shieldFraction > 0.05
+            ? (dark ? '#c8c4bc' : '#1a1916')
+            : '#8a4a3a';
     }
 
     // ── RAF loop ──────────────────────────────────────────────────────────────
@@ -353,8 +630,10 @@
             drawSeaNear();
             drawCombat();
             updateShipDom();
-            updateEnemyDom();  
+            updateEnemyDom();
             updateGenBar();
+            updateArmourBar();
+            updateSecondarySlotEl();
             if (MOBILE) {
                 if (mobileGenEl) mobileGenEl.textContent = Math.round(gen);
                 if (mobileShieldsEl) mobileShieldsEl.textContent = Math.round(shields);
@@ -377,6 +656,31 @@
         // All styles moved to idle.css
     }
 
+    // ── missile purchase ──────────────────────────────────────────────────────
+    function buyMissile() {
+        if (secondaryWeapon) return;
+        if (money < MISSILE_PRICE) return;
+        money -= MISSILE_PRICE;
+        localStorage.setItem('idle_money', money);
+        localStorage.setItem('idle_missile_unlocked', '1');
+        if (moneyEl) moneyEl.textContent = money;
+        secondaryWeapon = { cooldown: 4.5, timer: 0, _last: 0 };
+        updateSecondarySlotEl();
+    }
+
+    function updateSecondarySlotEl() {
+        if (!secondarySlotEl) return;
+        if (secondaryWeapon) {
+            secondarySlotEl.textContent = 'M';
+            secondarySlotEl.classList.add('equipped');
+            secondarySlotEl.title = 'Missile';
+        } else {
+            secondarySlotEl.textContent = money >= MISSILE_PRICE ? MISSILE_PRICE : '\u2013';
+            secondarySlotEl.classList.remove('equipped');
+            secondarySlotEl.title = money >= MISSILE_PRICE ? 'Buy missile' : 'Need ' + MISSILE_PRICE;
+        }
+    }
+
     // ── loadout slots ─────────────────────────────────────────────────────────
     function buildLoadoutSlots(parentEl) {
         var tooltip = document.createElement('div');
@@ -396,11 +700,12 @@
 
         function makeWeaponSlot(weapon, slotNum) {
             var el = document.createElement('div');
-            el.className = 'idle-slot' + (weapon ? ' equipped' : '');
-            el.textContent = weapon ? weapon.name.charAt(0) : '\u00b7';
+            var hasName = weapon && weapon.name;
+            el.className = 'idle-slot' + (hasName ? ' equipped' : '');
+            el.textContent = hasName ? weapon.name.charAt(0) : '\u00b7';
             el.addEventListener('mouseenter', function () {
-                var lines = ['Slot\u2009' + slotNum + '\u2009\u00b7\u2009' + (weapon ? weapon.name : 'Empty')];
-                if (weapon) lines.push('DMG\u2009' + weapon.damage + '\u2003GEN\u2009' + weapon.genCost);
+                var lines = ['Slot\u2009' + slotNum + '\u2009\u00b7\u2009' + (hasName ? weapon.name : 'Empty')];
+                if (hasName) lines.push('DMG\u2009' + weapon.damage + '\u2003GEN\u2009' + weapon.genCost);
                 showTip(el, lines);
             });
             el.addEventListener('mouseleave', hideTip);
@@ -432,7 +737,9 @@
         weaponsCol.id = 'idle-loadout-weapons';
         var weaponSlots = [primaryWeapon, secondaryWeapon, tertiaryWeapon, rearWeapon];
         for (var i = 0; i < weaponSlots.length; i++) {
-            weaponsCol.appendChild(makeWeaponSlot(weaponSlots[i], i + 1));
+            var slotEl = makeWeaponSlot(weaponSlots[i], i + 1);
+            if (i === 1) secondarySlotEl = slotEl;
+            weaponsCol.appendChild(slotEl);
         }
 
         var gensCol = document.createElement('div');
@@ -466,12 +773,12 @@
     }
 
     function buildEnemy() {
+        // template element — used only to preload image and read naturalWidth/Height
+        // actual enemy sprites are created per-enemy via createEnemySpriteEl()
         enemyEl = document.createElement('img');
         enemyEl.id = 'idle-enemy';
         enemyEl.src = 'assets/enemy1.png';
         document.body.appendChild(enemyEl);
-        if (open || locked) enemyEl.classList.add('on');  
-
     }
 
     function buildDOM() {
@@ -483,7 +790,7 @@
 
         ship.x = CW / 2;
         ship.y = CH * 0.80;
-        ship.worldY = CH * 0.25; 
+        ship.worldY = CH * 0.25;
         updateShipDom();
 
         if (MOBILE) {
@@ -647,12 +954,31 @@
 
             buildLoadoutSlots(panelEl);
 
+            var bottomRow = document.createElement('div');
+            bottomRow.id = 'idle-bottom-row';
+
             lockBtn = document.createElement('button');
             lockBtn.id = 'idle-lock';
             lockBtn.textContent = locked ? 'Unpin view' : 'Pin view';
             lockBtn.classList.toggle('on', locked);
             lockBtn.addEventListener('click', toggleLock);
-            panelEl.appendChild(lockBtn);
+            bottomRow.appendChild(lockBtn);
+
+            var resetBtn = document.createElement('button');
+            resetBtn.id = 'idle-reset';
+            resetBtn.textContent = '\u21ba';
+            resetBtn.title = 'Reset progress';
+            resetBtn.addEventListener('click', function () {
+                localStorage.removeItem('idle_money');
+                localStorage.removeItem('idle_missile_unlocked');
+                money = 0;
+                if (moneyEl) moneyEl.textContent = money;
+                secondaryWeapon = null;
+                updateSecondarySlotEl();
+            });
+            bottomRow.appendChild(resetBtn);
+
+            panelEl.appendChild(bottomRow);
 
             document.body.appendChild(panelEl);
             panelEl.classList.toggle('on', open);
@@ -667,7 +993,9 @@
     function setVisible(v) {
         canvasEl.classList.toggle('on', v);
         shipEl.classList.toggle('on', v);
-        enemyEl.classList.toggle('on', v);
+        for (var i = 0; i < enemies.length; i++) {
+            if (enemies[i].el) enemies[i].el.style.opacity = v ? '0.85' : '0';
+        }
         document.body.classList.toggle('idle-minimal', v);
     }
 
@@ -690,7 +1018,7 @@
     }
 
     // ── float ─────────────────────────────────────────────────────────────────
-    function spawnEnergyFloat() {
+    function spawnEnergyFloat(amount) {
         var q = document.getElementById('question');
         var x, y;
         if (q) {
@@ -703,7 +1031,7 @@
         }
         var el = document.createElement('span');
         el.className = 'idle-float';
-        el.textContent = '⁂' + GEN_AWARD;
+        el.textContent = '⁂' + (amount || GEN_AWARD);
         el.style.left = x + 'px';
         el.style.top = y + 'px';
         document.body.appendChild(el);
@@ -736,11 +1064,12 @@
             shipEl.src = 'assets/ship-cruise.png';
         }
     }
-    function award(n) {
+    function award(n, timePct) {
         correctCount++;
-        gen = Math.min(GEN_MAX, gen + GEN_AWARD);
+        var actual = Math.round(GEN_AWARD * (1 + (timePct || 0)));
+        gen = Math.min(GEN_MAX, gen + actual);
         takeoff();
-        if (open || locked) spawnEnergyFloat();
+        if (open || locked) spawnEnergyFloat(actual);
     }
 
     function updateUI() {
@@ -753,6 +1082,8 @@
         if (typeof window.submitAnswer !== 'function') return;
         var orig = window.submitAnswer;
         window.submitAnswer = function () {
+            var timerFill = document.getElementById('timer-fill');
+            var timePct = timerFill ? (parseFloat(timerFill.style.width) || 0) / 100 : 0;
             orig.apply(this, arguments);
             var fb = document.getElementById('feedback');
             if (fb && fb.className.indexOf('correct') !== -1) {
@@ -762,13 +1093,16 @@
                         path.indexOf('division') !== -1 ? 0.25 :
                             path.indexOf('addsubtract') !== -1 ? (window.idleQuestionValue || 0.3) :
                                 path.indexOf('fractions') !== -1 ? 5 : 0.1;
-                award(amt);
+                award(amt, timePct);
             }
         };
     }
 
     // ── init ──────────────────────────────────────────────────────────────────
     window.addEventListener('DOMContentLoaded', function () {
+        if (localStorage.getItem('idle_missile_unlocked') === '1') {
+            secondaryWeapon = { cooldown: 4.5, timer: 0, _last: 0 };
+        }
         buildDOM();
         if (MOBILE && window.visualViewport) {
             function updateCanvasToViewport() {
@@ -789,8 +1123,12 @@
         }
         patchSubmitAnswer();
         spawnLevel();
-        enemy = null;
-        enemyRespawnTimer = 17;   // seconds before first enemy appears
+        // clear enemies spawned by spawnLevel — use initial delay from config
+        for (var i = 0; i < enemies.length; i++) {
+            if (enemies[i].el) enemies[i].el.remove();
+        }
+        enemies = [];
+        enemyRespawnTimer = ENEMY_INITIAL_DELAY;
         ship.worldY = CH * 0.25;
         updateUI();
         lastRaf = performance.now();
