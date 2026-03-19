@@ -337,7 +337,15 @@ body.idle-minimal {
     }
 
     body.idle-minimal .settings-row {
-        display: none;
+        position: fixed;
+        bottom: 2.2rem;
+        left: 0rem;
+        background: transparent;
+        border: none;
+        margin: 25px;
+        padding: 0rem;
+        width: auto;
+        gap: 0.5rem;
     }
 
     body.idle-minimal .progress-bar-wrap {
@@ -345,7 +353,12 @@ body.idle-minimal {
     }
 
     body.idle-minimal .timer-bar-wrap {
-        display: none;
+        position: fixed;
+        bottom: calc(-50vh + 13rem);
+        left: 50%;
+        transform: translateX(-50%);
+        width: 100%;
+        max-width: 420px;
     }
 
     body.idle-minimal .hint {
@@ -386,6 +399,10 @@ body.idle-minimal {
         gap: 6px !important;
         align-items: flex-start !important;
     }
+
+        body.idle-minimal .nav-links span {
+            display: none;
+        }
 
     /* Stats row — keep streak only, strip all borders */
     body.idle-minimal .stats-row {
