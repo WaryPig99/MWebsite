@@ -1189,6 +1189,11 @@
             }
             window.visualViewport.addEventListener('resize', updateCanvasToViewport);
             window.visualViewport.addEventListener('scroll', updateCanvasToViewport);
+            var answerInput = document.getElementById('answer-input');
+            if (answerInput) {
+                answerInput.addEventListener('focus', function () { setTimeout(updateCanvasToViewport, 300); });
+                answerInput.addEventListener('blur', function () { setTimeout(updateCanvasToViewport, 300); });
+            }
             updateCanvasToViewport();
         }
         patchSubmitAnswer();
