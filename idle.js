@@ -32,7 +32,7 @@
     var SHIP_H = 64 * SCALE;
     var CH = window.innerHeight;
     var CW = Math.round(CH * (4 / 10));
-    var cardLeft = 0;   
+    var cardLeft = 0;
     var SEA_TILE_H = 400;
 
     var imgFar = new Image();
@@ -74,7 +74,7 @@
 
     // ── combat ────────────────────────────────────────────────────────────────    
     var bullets = [];
-    var enemies = [];  
+    var enemies = [];
     var enemyBullets = [];
     var ENEMY_FIRE_RATE = 1.8;  // seconds between shots, tune this
     var obstacles = [];
@@ -233,7 +233,7 @@
         var timeToTarget = (ship.y - best.y) / 385;
         var predictedX = best.x + Math.sin(best.phase + timeToTarget * 0.5) * 18 * timeToTarget;
         var vx = (predictedX - ship.x) / timeToTarget;
-        bullets.push({ x: ship.x, y: ship.y - SHIP_H * 0.45, vx: vx, vy: -385 });        gen = Math.max(0, gen - GEN_COST);
+        bullets.push({ x: ship.x, y: ship.y - SHIP_H * 0.45, vx: vx, vy: -385 }); gen = Math.max(0, gen - GEN_COST);
         lastFireMs = now;
     }
 
@@ -417,7 +417,7 @@
             drawSeaNear();
             drawCombat();
             updateShipDom();
-            updateEnemyDom();  
+            updateEnemyDom();
             updateGenBar();
             updateArmourBar();
 
@@ -868,7 +868,7 @@
             genBarEl = document.createElement('div');
             genBarEl.id = 'idle-gen-bar';
             genTrack.appendChild(genBarEl);
-            panelEl.appendChild(genTrack);      
+            panelEl.appendChild(genTrack);
 
             var armourLabel = document.createElement('div');
             armourLabel.id = 'idle-armour-label';
@@ -1000,6 +1000,11 @@
         gameOver = true;
         flightState = 'grounded';
         shipEl.src = 'assets/ship.png';
+
+        if (!open && !locked) {
+            setTimeout(resetGame, 0);
+            return;
+        }
 
         gameOverEl = document.createElement('div');
         gameOverEl.id = 'idle-gameover';
