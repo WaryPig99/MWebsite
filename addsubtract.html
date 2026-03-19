@@ -20,7 +20,6 @@
             margin-bottom: 10px;
         }
 
-
         .mode-btn {
             font-family: 'EB Garamond', serif;
             font-size: 11px;
@@ -44,6 +43,12 @@
         .mode-sep {
             font-size: 11px;
             color: #c8c4bc;
+        }
+
+        body.mode-add #question,
+        body.mode-sub #question,
+        body.mode-mix #question {
+            font-size: 68px !important;
         }
 
         /* Strategy card shown in mc-overlay instead of the grid */
@@ -133,7 +138,7 @@
         }
     </style>
 </head>
-<body class="mode-singles">
+<body>
 
     <button id="dark-toggle" onclick="toggleDark()" title="Toggle dark mode">☽</button>
 
@@ -504,13 +509,13 @@
         function setMode(mode) {
             window.idleQuestionValue = mode === 'singles' ? 0.1 : 2;
             currentMode = mode;
-            document.body.className = 'mode-' + mode;
+            document.body.classList.remove('mode-singles', 'mode-add', 'mode-sub', 'mode-mix');
+            document.body.classList.add('mode-' + mode);
             document.querySelectorAll('.mode-btn').forEach(btn =>
                 btn.classList.toggle('active', btn.dataset.mode === mode)
             );
-            startFresh();   // ← was missing
-        }   
-
+            startFresh();
+        }
         function updateTimerLabel(val) {
             document.getElementById('mc-timer-label').textContent = val + 's';
             mcDur = parseInt(val) * 1000;

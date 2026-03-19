@@ -301,9 +301,9 @@
             if (target) {
                 var ey = engageY(target);
                 // snap directly below the target — crisp, purposeful
-                fx += (target.x - ship.x) * 18.0;
-                fy += (ey - ship.y) * 14.0;
-                damp = 0.96;
+                fx += (target.x - ship.x) * 34.0;
+                fy += (ey - ship.y) * 24.0;
+                damp = 0.82;  // low damping → snappy positioning
                 // arrived: lock in and commit
                 if (Math.abs(ship.x - target.x) < 12 && Math.abs(ship.y - ey) < 18) {
                     pilotState = 'engage';
@@ -627,7 +627,6 @@
         if (flightState === 'grounded') return;
         var dark = document.documentElement.classList.contains('dark');
 
-
         // bullets — thin vertical streaks
         ctx.fillStyle = dark ? 'rgba(255,255,255,1)' : 'rgba(26,25,22,1)';
         for (var i = 0; i < bullets.length; i++) {
@@ -648,9 +647,7 @@
                 var tf = 1 - (m.trail[t].age / 0.35);
                 ctx.globalAlpha = tf * (m.phase === 'lock' ? 0.55 : 0.18);
                 var ts = (m.phase === 'lock' ? 2.5 : 1.5) * tf * SCALE;
-                ctx.fillStyle = dark ? '#c8c4bc' : '#1a1916';
-                ctx.beginPath();
-                ctx.arc(m.trail[t].x, m.trail[t].y, ts, 0, Math.PI * 2);
+                ctx.fillStyle = dark ? '#ffffff' : '#1a1916';
                 ctx.fill();
             }
             ctx.globalAlpha = 1;
@@ -659,7 +656,7 @@
             ctx.translate(m.x, m.y);
             ctx.rotate(m.angle + Math.PI / 2);
             ctx.globalAlpha = m.phase === 'eject' ? 0.5 : m.phase === 'hang' ? 0.65 : 0.85;
-            ctx.fillStyle = dark ? '#c8c4bc' : '#1a1916';
+            ctx.fillStyle = dark ? '#ffffff' : '#1a1916';
 
             var bw = 2 * SCALE, bh = 7 * SCALE;
             ctx.fillRect(-bw / 2, -bh, bw, bh + 4 * SCALE);

@@ -1217,7 +1217,7 @@ html.dark #dark-toggle {
 body.mode-add #question,
 body.mode-sub #question,
 body.mode-mix #question {
-    font-size: 70px;
+    font-size: 68px;
     letter-spacing: -2px;
 }
 
