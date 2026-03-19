@@ -606,8 +606,7 @@
             flex: 1;
             margin-left: 6px;
             margin-right: 6px;
-            margin-top: 36px;
-            height: 104px;
+            height: 140px;
             border: 0.5px solid #c8c4bc;
             border-radius: 1px;
             box-sizing: border-box;
