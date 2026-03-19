@@ -602,6 +602,17 @@
             flex-direction: column;
             gap: 4px;
         }
+        #idle-ship-diagram {
+            flex: 1;
+            margin-left: 6px;
+            margin-right: 6px;
+            margin-top: 36px;
+            height: 104px;
+            border: 0.5px solid #c8c4bc;
+            border-radius: 1px;
+            box-sizing: border-box;
+        }
+        html.dark #idle-ship-diagram { border-color: #2e3038; }
         .idle-slot {
             width: 32px;
             height: 32px;
@@ -706,7 +717,11 @@
         gensCol.id = 'idle-loadout-generators';
         gensCol.appendChild(makeGenSlot(generatorSlot));
 
+        var shipDiagram = document.createElement('div');
+        shipDiagram.id = 'idle-ship-diagram';
+
         row.appendChild(weaponsCol);
+        row.appendChild(shipDiagram);
         row.appendChild(gensCol);
         parentEl.appendChild(row);
     }
