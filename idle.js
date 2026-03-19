@@ -1183,7 +1183,7 @@
                     var kbH = Math.max(0, window.innerHeight - vv.height - vv.offsetTop);
                     toggleEl.style.bottom = (kbH + 96) + 'px';
                 }
-                if (flightState === 'grounded') { ship.y = CH * 0.80; }
+                if (flightState === 'grounded') { ship.y = CH * 0.75; }
                 updateShipDom();
             }
             window.visualViewport.addEventListener('resize', updateCanvasToViewport);
