@@ -14,7 +14,7 @@
     //
     // ─────────────────────────────────────────────────────────────────────────
 
-    var panelEl, toggleEl, spmEl, genBarEl, lockBtn, shipEl, enemyEl, moneyEl, canvasEl, ctx;
+    var panelEl, toggleEl, spmEl, genBarEl, armourBarEl, lockBtn, shipEl, enemyEl, moneyEl, canvasEl, ctx;
 
     var correctCount = 0;
     var sessionStart = Date.now();
@@ -416,6 +416,20 @@
         #idle-gen-track { width: 100%; height: 2px; background: #e8e4dc; overflow: hidden; }
         #idle-gen-bar { height: 100%; width: 0%; background: #1a1916; transition: width .08s linear; }
 
+        #idle-armour-label {
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: .16em;
+            color: #c8c4bc;
+            margin-bottom: 7px;
+            margin-top: 1.2rem;
+        }
+        #idle-armour-track { width: 100%; height: 2px; background: #e8e4dc; overflow: hidden; }
+        #idle-armour-bar { height: 100%; width: 100%; background: #1a1916; transition: width .08s linear; }
+        html.dark #idle-armour-label { color: #3d4148; }
+        html.dark #idle-armour-track { background: #252830; }
+        html.dark #idle-armour-bar { background: #c8c4bc; }
+
         #idle-money-label {
             font-size: 10px;
             text-transform: uppercase;
@@ -803,6 +817,18 @@
             genBarEl.id = 'idle-gen-bar';
             genTrack.appendChild(genBarEl);
             panelEl.appendChild(genTrack);
+
+            var armourLabel = document.createElement('div');
+            armourLabel.id = 'idle-armour-label';
+            armourLabel.textContent = '\u26e8 Shields';
+            panelEl.appendChild(armourLabel);
+
+            var armourTrack = document.createElement('div');
+            armourTrack.id = 'idle-armour-track';
+            armourBarEl = document.createElement('div');
+            armourBarEl.id = 'idle-armour-bar';
+            armourTrack.appendChild(armourBarEl);
+            panelEl.appendChild(armourTrack);
 
             var moneyLabel = document.createElement('div');
             moneyLabel.id = 'idle-money-label';
