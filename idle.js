@@ -60,6 +60,22 @@
     var money = parseInt(localStorage.getItem('idle_money') || '0', 10);
     var MONEY_PER_KILL = 5;
 
+    // ── WEAPONS & GENERATORS ──────────────────────────────────────────────────
+    var WEAPONS = {
+        vulcan:  { name: 'Vulcan',  slot: 'primary',   damage: 1, genCost: 1 },
+        missile: { name: 'Missile', slot: 'secondary',  damage: 8, genCost: 6 },
+    };
+    var GENERATORS = {
+        basicGenerator: { name: 'Basic Generator', regenRate: 0.5 },
+    };
+
+    // Weapon / generator slot state
+    var primaryWeapon   = WEAPONS.vulcan;
+    var secondaryWeapon = null;
+    var tertiaryWeapon  = null;
+    var rearWeapon      = null;
+    var generatorSlot   = GENERATORS.basicGenerator;
+
 
     // ── combat ────────────────────────────────────────────────────────────────    
     var bullets = [];
@@ -548,8 +564,137 @@
         html.dark #idle-topbar-gen-track { background: transparent; }
         html.dark #idle-topbar-gen-bar { background: #c8c4bc; }
         html.dark #idle-topbar-money { color: #6a6660; }
+
+        #idle-loadout-label {
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: .16em;
+            color: #c8c4bc;
+            margin-bottom: 8px;
+            margin-top: 1.2rem;
+        }
+        #idle-loadout-row {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+        }
+        #idle-loadout-weapons {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        #idle-loadout-generators {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .idle-slot {
+            width: 32px;
+            height: 32px;
+            border: 0.5px solid #d0ccc6;
+            border-radius: 1px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 9px;
+            letter-spacing: .1em;
+            color: #c8c4bc;
+            cursor: default;
+            user-select: none;
+            box-sizing: border-box;
+            transition: border-color .15s, color .15s;
+        }
+        .idle-slot.equipped { border-color: #8a8680; color: #1a1916; }
+        .idle-slot:hover { border-color: #8a8680; }
+        #idle-slot-tooltip {
+            position: fixed;
+            z-index: 500;
+            pointer-events: none;
+            background: rgba(250,249,247,0.97);
+            border: 0.5px solid #c8c4bc;
+            border-radius: 1px;
+            padding: 6px 10px;
+            font-family: "EB Garamond","Times New Roman",serif;
+            font-size: 11px;
+            color: #1a1916;
+            letter-spacing: .04em;
+            line-height: 1.6;
+            white-space: nowrap;
+            display: none;
+        }
+        html.dark #idle-loadout-label { color: #3d4148; }
+        html.dark .idle-slot { border-color: #252830; color: #3d4148; }
+        html.dark .idle-slot.equipped { border-color: #6a6660; color: #c8c4bc; }
+        html.dark .idle-slot:hover { border-color: #6a6660; }
+        html.dark #idle-slot-tooltip { background: rgba(13,15,18,0.97); border-color: #252830; color: #c8c4bc; }
     `;
         document.head.appendChild(s);
+    }
+
+    // ── loadout slots ─────────────────────────────────────────────────────────
+    function buildLoadoutSlots(parentEl) {
+        var tooltip = document.createElement('div');
+        tooltip.id = 'idle-slot-tooltip';
+        document.body.appendChild(tooltip);
+
+        function showTip(anchorEl, lines) {
+            tooltip.innerHTML = lines.join('<br>');
+            tooltip.style.display = 'block';
+            var r = anchorEl.getBoundingClientRect();
+            tooltip.style.top = Math.max(4, r.top) + 'px';
+            tooltip.style.left = 'auto';
+            tooltip.style.right = (window.innerWidth - r.left + 6) + 'px';
+        }
+        function hideTip() { tooltip.style.display = 'none'; }
+
+        function makeWeaponSlot(weapon, slotNum) {
+            var el = document.createElement('div');
+            el.className = 'idle-slot' + (weapon ? ' equipped' : '');
+            el.textContent = weapon ? weapon.name.charAt(0) : '\u00b7';
+            el.addEventListener('mouseenter', function () {
+                var lines = ['Slot\u2009' + slotNum + '\u2009\u00b7\u2009' + (weapon ? weapon.name : 'Empty')];
+                if (weapon) lines.push('DMG\u2009' + weapon.damage + '\u2003GEN\u2009' + weapon.genCost);
+                showTip(el, lines);
+            });
+            el.addEventListener('mouseleave', hideTip);
+            return el;
+        }
+
+        function makeGenSlot(gen) {
+            var el = document.createElement('div');
+            el.className = 'idle-slot' + (gen ? ' equipped' : '');
+            el.textContent = gen ? 'G' : '\u00b7';
+            el.addEventListener('mouseenter', function () {
+                var lines = ['Generator\u2009\u00b7\u2009' + (gen ? gen.name : 'Empty')];
+                if (gen) lines.push('Regen\u2009' + gen.regenRate + '/s');
+                showTip(el, lines);
+            });
+            el.addEventListener('mouseleave', hideTip);
+            return el;
+        }
+
+        var label = document.createElement('div');
+        label.id = 'idle-loadout-label';
+        label.textContent = 'loadout';
+        parentEl.appendChild(label);
+
+        var row = document.createElement('div');
+        row.id = 'idle-loadout-row';
+
+        var weaponsCol = document.createElement('div');
+        weaponsCol.id = 'idle-loadout-weapons';
+        var weaponSlots = [primaryWeapon, secondaryWeapon, tertiaryWeapon, rearWeapon];
+        for (var i = 0; i < weaponSlots.length; i++) {
+            weaponsCol.appendChild(makeWeaponSlot(weaponSlots[i], i + 1));
+        }
+
+        var gensCol = document.createElement('div');
+        gensCol.id = 'idle-loadout-generators';
+        gensCol.appendChild(makeGenSlot(generatorSlot));
+
+        row.appendChild(weaponsCol);
+        row.appendChild(gensCol);
+        parentEl.appendChild(row);
     }
 
     // ── DOM ───────────────────────────────────────────────────────────────────
@@ -668,6 +813,8 @@
             moneyEl.id = 'idle-money';
             moneyEl.textContent = money;
             panelEl.appendChild(moneyEl);
+
+            buildLoadoutSlots(panelEl);
 
             lockBtn = document.createElement('button');
             lockBtn.id = 'idle-lock';
