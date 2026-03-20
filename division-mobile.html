@@ -336,6 +336,39 @@
         html.dark #missed-btn { border-color: #252830; color: #c8c4bc; }
 
         #done-history { margin-top: 1.5rem; text-align: center; }
+
+        #session-size-row {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 1rem;
+        }
+        .size-btn {
+            flex: 1;
+            max-width: 60px;
+            padding: 7px 0;
+            font-family: 'EB Garamond', serif;
+            font-size: 13px;
+            letter-spacing: .1em;
+            border: 0.5px solid #c8c4bc;
+            border-radius: 2px;
+            background: transparent;
+            color: #8a8680;
+            cursor: pointer;
+        }
+        .size-btn.active {
+            background: #1a1916;
+            color: #faf9f7;
+            border-color: #1a1916;
+        }
+        html.dark .size-btn {
+            border-color: #252830;
+            color: #6a6660;
+        }
+        html.dark .size-btn.active {
+            background: #c8c4bc;
+            color: #0d0f12;
+            border-color: #c8c4bc;
+        }
     </style>
 </head>
 <body>
@@ -390,6 +423,12 @@
         <div id="done-title"></div>
         <div id="done-sub"></div>
         <div id="done-time"></div>
+        <div id="session-size-row">
+            <button class="size-btn" data-size="25">25</button>
+            <button class="size-btn" data-size="50">50</button>
+            <button class="size-btn" data-size="100">100</button>
+            <button class="size-btn" data-size="0">Full</button>
+        </div>
         <button class="done-btn" id="restart-btn">Full drill again</button>
         <button class="done-btn" id="missed-btn">Missed only</button>
         <div id="done-history"></div>
@@ -409,12 +448,13 @@
         let correct = 0, wrong = 0, streak = 0, current = null, total = 0, doneCount = 0;
         let drillStart = null;
         let mcVisible = false;
+        let sessionSize = parseInt(localStorage.getItem('mobile_session_size') || '25');
 
         function startFresh() {
             if (window.resetToStart) window.resetToStart();
 
             drillStart = Date.now();
-            queue = shuffle([...allFacts]);
+            queue = sessionSize ? shuffle([...allFacts]).slice(0, sessionSize) : shuffle([...allFacts]);
             missed = {}; correct = 0; wrong = 0; streak = 0; doneCount = 0; total = queue.length;
             document.getElementById('done-screen').classList.remove('visible');
             updateStats(); nextQ();
@@ -569,6 +609,7 @@
             document.getElementById('missed-btn').style.display = Object.keys(missed).length ? 'block' : 'none';
             const hist = saveDrillResult('history_divide', 'history_divide', pct, timeStr, 'Full');
             document.getElementById('done-history').innerHTML = renderDrillHistory(hist);
+            document.getElementById('restart-btn').textContent = sessionSize ? `${sessionSize} questions again` : 'Full drill again';
             document.getElementById('done-screen').classList.add('visible');
         }
 
@@ -581,6 +622,22 @@
         document.getElementById('submit-btn').addEventListener('click', function () { window.submitAnswer(); });
         document.getElementById('restart-btn').addEventListener('click', startFresh);
         document.getElementById('missed-btn').addEventListener('click', drillMissed);
+
+        function updateSizeBtns() {
+            document.querySelectorAll('.size-btn').forEach(btn => {
+                btn.classList.toggle('active', parseInt(btn.dataset.size) === sessionSize);
+            });
+        }
+
+        document.querySelectorAll('.size-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                sessionSize = parseInt(btn.dataset.size);
+                localStorage.setItem('mobile_session_size', sessionSize);
+                updateSizeBtns();
+            });
+        });
+
+        updateSizeBtns();
 
         // ── MODE MENU ──────────────────────────────────────────────────────────
 
