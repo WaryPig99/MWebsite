@@ -23,6 +23,7 @@
     var locked = localStorage.getItem('idle_locked') === '1';
 
     var MOBILE = window.innerWidth < 768;
+    if (MOBILE) locked = false;  // no lock button on mobile — prevent stale desktop state keeping sim alive
     var SCALE = MOBILE ? 0.5 : 1;
     var suppressTooltips = MOBILE;
     var drawerOpen = false;  // always start closed — avoids double-press on mobile
