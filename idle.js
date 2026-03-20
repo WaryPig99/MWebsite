@@ -38,8 +38,9 @@
 
     var imgFar = new Image();
     var imgNear = new Image();
-    imgFar.src = 'assets/sea-far.png';
-    imgNear.src = 'assets/sea-near.png';
+    var _dark = document.documentElement.classList.contains('dark');
+    imgFar.src = _dark ? 'assets/sea-far-dark.png' : 'assets/sea-far.png';
+    imgNear.src = _dark ? 'assets/sea-near-dark.png' : 'assets/sea-near.png';
 
     // ── scroll ────────────────────────────────────────────────────────────────
 
@@ -628,13 +629,13 @@
         var dark = document.documentElement.classList.contains('dark');
 
         // bullets — thin vertical streaks
-        ctx.fillStyle = dark ? 'rgba(26,25,22,1)' : 'rgba(26,25,22,1)';
+        ctx.fillStyle = dark ? '#c8c4bc' : 'rgba(26,25,22,1)';
         for (var i = 0; i < bullets.length; i++) {
             ctx.fillRect(bullets[i].x - 2 * SCALE, bullets[i].y - 7 * SCALE, 4 * SCALE, 12 * SCALE);
         }
 
         // enemy bullets — slightly wider, clearly visible
-        ctx.fillStyle = dark ? 'rgba(26,25,22,1)' : 'rgba(26,25,22,1)';
+        ctx.fillStyle = dark ? 'rgba(200,196,188,0.85)' : 'rgba(26,25,22,0.8)';
         for (var i = 0; i < enemyBullets.length; i++) {
             ctx.fillRect(enemyBullets[i].x - 2.5 * SCALE, enemyBullets[i].y - 6 * SCALE, 5 * SCALE, 11 * SCALE);
         }
@@ -646,7 +647,7 @@
                 var tf = 1 - (m.trail[t].age / 0.35);
                 ctx.globalAlpha = tf * (m.phase === 'lock' ? 0.55 : 0.18);
                 var ts = (m.phase === 'lock' ? 2.5 : 1.5) * tf * SCALE;
-                ctx.fillStyle = dark ? 'rgba(26,25,22,1)' : 'rgba(26,25,22,1)';
+                ctx.fillStyle = dark ? '#c8c4bc' : '#1a1916';
                 ctx.beginPath();
                 ctx.arc(m.trail[t].x, m.trail[t].y, ts, 0, Math.PI * 2);
                 ctx.fill();
@@ -657,7 +658,7 @@
             ctx.translate(m.x, m.y);
             ctx.rotate(m.angle + Math.PI / 2);
             ctx.globalAlpha = m.phase === 'eject' ? 0.5 : m.phase === 'hang' ? 0.65 : 0.85;
-            ctx.fillStyle = dark ? 'rgba(26,25,22,1)' : 'rgba(26,25,22,1)';
+            ctx.fillStyle = dark ? '#c8c4bc' : '#1a1916';
 
             var bw = 2 * SCALE, bh = 7 * SCALE;
             ctx.fillRect(-bw / 2, -bh, bw, bh + 4 * SCALE);
@@ -669,7 +670,7 @@
 
             if (m.phase === 'lock') {
                 ctx.globalAlpha = 0.4 + Math.random() * 0.3;
-                ctx.fillStyle = dark ? 'rgba(26,25,22,1)' : 'rgba(26,25,22,1)';
+                ctx.fillStyle = dark ? '#6a6660' : '#6a6660';
                 ctx.fillRect(-bw / 2, 4 * SCALE, bw, (3 + Math.random() * 4) * SCALE);
             }
 
@@ -703,14 +704,11 @@
         lastRaf = now;
 
 
-        var spd = scrollSpeed();
-        if (flightState !== 'grounded') ship.worldY -= spd * dt;
-
-
-        steer(dt);
-        updateCombat(now, dt);
-
         if (open || locked) {
+            var spd = scrollSpeed();
+            if (flightState !== 'grounded') ship.worldY -= spd * dt;
+            steer(dt);
+            updateCombat(now, dt);
             ctx.clearRect(0, 0, CW, CH);
             drawSeaFar();
             drawSeaNear();
@@ -1064,7 +1062,14 @@
                 if (moneyEl) moneyEl.textContent = money;
                 secondaryWeapon = null;
                 updateSecondarySlotEl();
+                // cut ship instantly so it doesn't visibly snap to pier
+                shipEl.style.transition = 'opacity 0s';
+                shipEl.style.opacity = '0';
                 resetToStart();
+                requestAnimationFrame(function () {
+                    shipEl.style.transition = '';
+                    shipEl.style.opacity = '';
+                });
             });
             bottomRow.appendChild(resetBtn);
 
@@ -1083,8 +1088,13 @@
     function setVisible(v) {
         canvasEl.classList.toggle('on', v);
         shipEl.classList.toggle('on', v);
-        for (var i = 0; i < enemies.length; i++) {
-            if (enemies[i].el) enemies[i].el.style.opacity = v ? '0.85' : '0';
+        if (v) {
+            for (var i = 0; i < enemies.length; i++) {
+                if (enemies[i].el) enemies[i].el.style.opacity = '0.85';
+            }
+        } else {
+            // immediately remove all enemy elements and reset — no fading ghosts
+            resetToStart();
         }
         document.body.classList.toggle('idle-minimal', v);
     }

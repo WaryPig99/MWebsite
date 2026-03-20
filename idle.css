@@ -644,12 +644,9 @@ html.dark #idle-drawer {
     color: #c8c4bc;
 }
 
-html.dark body.idle-minimal #idle-canvas {
-    filter: invert(1);
-}
 html.dark body.idle-minimal #idle-ship {
     filter: invert(1);
-}   
+}
 
 /* ══════════════════════════════════════════════════════════════════════════════
    MINIMAL MODE — body.idle-minimal
@@ -674,43 +671,44 @@ body.idle-minimal {
     overflow: hidden;
     display: flex;
 }
-    body.idle-minimal .hint {
-        display: none;
-    }
 
-    body.idle-minimal .hint-btn {
-        display: none;
-    }
+body.idle-minimal .hint {
+    display: none;
+}
 
-    body.idle-minimal .missed-section {
-        display: none;
-    }
+body.idle-minimal .hint-btn {
+    display: none;
+}
 
-    body.idle-minimal .stats-row {
-        border: none;
-        background: transparent;
-        margin-bottom: 0.5rem;
-    }
+body.idle-minimal .missed-section {
+    display: none;
+}
 
-    body.idle-minimal .stat {
-        border: none;
-    }
+body.idle-minimal .stats-row {
+    border: none;
+    background: transparent;
+    margin-bottom: 0.5rem;
+}
 
-    body.idle-minimal .card {
-        border: none;
-        background: transparent !important;
-        padding-top: 1.5rem;
-        padding-bottom: 0.8rem;
-    }
+body.idle-minimal .stat {
+    border: none;
+}
 
-    /* ── Mobile: hide elements that desktop repositions instead ── */
-    body.idle-minimal .settings-row {
-        display: none;
-    }
+body.idle-minimal .card {
+    border: none;
+    background: transparent !important;
+    padding-top: 1.5rem;
+    padding-bottom: 0.8rem;
+}
 
-    body.idle-minimal .timer-bar-wrap {
-        display: none;
-    }
+/* ── Mobile: hide elements that desktop repositions instead ── */
+body.idle-minimal .settings-row {
+    display: none;
+}
+
+body.idle-minimal .timer-bar-wrap {
+    display: none;
+}
 
 /* ── Desktop: reposition elements rather than hiding them ── */
 @media (min-width: 768px) {
