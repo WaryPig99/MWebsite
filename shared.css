@@ -1201,8 +1201,8 @@ html.dark #dark-toggle {
 
 @media (max-width: 767px) {
     #prog-wrap {
-        height: 3px;
-        top: 76px;
+        height: 6px;
+        top: 44px;
         display: flex;
     }
 
